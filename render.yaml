@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: car-stories-frontend
+    env: static
+    repo: https://github.com/AnatoliiBK/Car-Stories
+    branch: main
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+
+  - type: web
+    name: car-stories-backend
+    env: node
+    repo: https://github.com/AnatoliiBK/Car-Stories
+    branch: main
+    startCommand: node server.js
+    buildCommand: npm install
+    envVars:
+      - key: MONGODB_URI
+        sync: false
