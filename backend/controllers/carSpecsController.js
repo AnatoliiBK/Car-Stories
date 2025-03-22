@@ -160,18 +160,84 @@ exports.getCarSpecs = async (req, res) => {
 // };
 
 // Функція для отримання даних з GCS і NHTSA
+// exports.getCarSpecsFromGCS = async (req, res) => {
+//   try {
+//     const { carId, make, model, year, vin } = req.body;
+
+//     // Перевірка необхідних параметрів
+//     if (!carId || (!vin && (!make || !model || !year))) {
+//       return res
+//         .status(400)
+//         .json({ error: "Потрібен carId і VIN або make, model, year" });
+//     }
+
+//     // Перевіряємо наявність даних у кеші
+//     let existingSpecs = await CarSpecs.findOne({ carId, source: "nhtsa" });
+//     if (existingSpecs) {
+//       console.log("✅ Характеристики отримано з кешу");
+//       return res.status(200).json({
+//         message: "Характеристики отримано з кешу",
+//         carSpecs: existingSpecs,
+//       });
+//     }
+
+//     // 🔍 Отримуємо корисні посилання з GCS
+//     const results = await googleSearchCarSpecs(`${make} ${model} ${year}`);
+//     const usefulLinks = results.length
+//       ? results.map((item) => ({
+//           title: item.title,
+//           url: item.link,
+//         }))
+//       : [];
+
+//     // 🔍 Отримуємо технічні характеристики з NHTSA API
+//     const nhtsaSpecs = await nhtsaSearchCarSpecs({ vin, make, model, year });
+//     if (!nhtsaSpecs) {
+//       // Якщо NHTSA не дало результатів, зберігаємо лише посилання
+//       const newCarSpecs = new CarSpecs({
+//         carId,
+//         source: "gcs", // Джерело лише GCS, якщо NHTSA не знайдено
+//         usefulLinks,
+//       });
+//       await newCarSpecs.save();
+//       return res.status(200).json({
+//         message:
+//           "Технічні характеристики не знайдено, збережено лише посилання",
+//         carSpecs: newCarSpecs,
+//       });
+//     }
+
+//     // Збереження у базу MongoDB з даними з NHTSA
+//     const newCarSpecs = new CarSpecs({
+//       carId,
+//       source: "nhtsa", // Джерело — NHTSA, оскільки додаємо його дані
+//       usefulLinks,
+//       ...nhtsaSpecs, // Розпаковуємо характеристики з NHTSA
+//     });
+
+//     await newCarSpecs.save();
+//     console.log("✅ Дані збережено в MongoDB");
+
+//     res.status(200).json({
+//       message: "Характеристики додано",
+//       carSpecs: newCarSpecs,
+//     });
+//   } catch (error) {
+//     console.error("❌ Помилка в getCarSpecsFromGCS:", error.message);
+//     res.status(500).json({ error: "Помилка сервера" });
+//   }
+// };
+
 exports.getCarSpecsFromGCS = async (req, res) => {
   try {
     const { carId, make, model, year, vin } = req.body;
 
-    // Перевірка необхідних параметрів
     if (!carId || (!vin && (!make || !model || !year))) {
       return res
         .status(400)
         .json({ error: "Потрібен carId і VIN або make, model, year" });
     }
 
-    // Перевіряємо наявність даних у кеші
     let existingSpecs = await CarSpecs.findOne({ carId, source: "nhtsa" });
     if (existingSpecs) {
       console.log("✅ Характеристики отримано з кешу");
@@ -181,7 +247,6 @@ exports.getCarSpecsFromGCS = async (req, res) => {
       });
     }
 
-    // 🔍 Отримуємо корисні посилання з GCS
     const results = await googleSearchCarSpecs(`${make} ${model} ${year}`);
     const usefulLinks = results.length
       ? results.map((item) => ({
@@ -189,17 +254,19 @@ exports.getCarSpecsFromGCS = async (req, res) => {
           url: item.link,
         }))
       : [];
+    console.log("🔍 Корисні посилання з GCS:", usefulLinks);
 
-    // 🔍 Отримуємо технічні характеристики з NHTSA API
     const nhtsaSpecs = await nhtsaSearchCarSpecs({ vin, make, model, year });
+    console.log("📋 Результати від NHTSA:", nhtsaSpecs);
+
     if (!nhtsaSpecs) {
-      // Якщо NHTSA не дало результатів, зберігаємо лише посилання
       const newCarSpecs = new CarSpecs({
         carId,
-        source: "gcs", // Джерело лише GCS, якщо NHTSA не знайдено
+        source: "gcs",
         usefulLinks,
       });
       await newCarSpecs.save();
+      console.log("✅ Збережено лише посилання з GCS");
       return res.status(200).json({
         message:
           "Технічні характеристики не знайдено, збережено лише посилання",
@@ -207,12 +274,11 @@ exports.getCarSpecsFromGCS = async (req, res) => {
       });
     }
 
-    // Збереження у базу MongoDB з даними з NHTSA
     const newCarSpecs = new CarSpecs({
       carId,
-      source: "nhtsa", // Джерело — NHTSA, оскільки додаємо його дані
+      source: "nhtsa",
       usefulLinks,
-      ...nhtsaSpecs, // Розпаковуємо характеристики з NHTSA
+      ...nhtsaSpecs,
     });
 
     await newCarSpecs.save();
