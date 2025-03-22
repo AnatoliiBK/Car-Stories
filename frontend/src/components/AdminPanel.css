@@ -1,0 +1,118 @@
+.admin-panel {
+    padding: 2rem;
+    /* background-color: #f5f5f5; */
+}
+
+.admin-panel.light {
+    /* background-color: #fff; */
+    background-color: #f5f5f5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Темна тема */
+.admin-panel.dark {
+    background-color: #333;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+
+@keyframes colorChange {
+    0% {
+        color: yellow;
+    }
+
+    100% {
+        color: green;
+    }
+}
+
+.admin-panel h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    /* color: #333; */
+    animation: colorChange 1s infinite alternate;
+}
+
+.pending-cars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.pending-car {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Світла тема */
+.pending-car.light {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    h3,
+    p {
+        color: #000;
+        ;
+    }
+}
+
+/* Темна тема */
+.pending-car.dark {
+    background-color: #333;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+
+    h3,
+    p {
+        color: #fff;
+    }
+}
+
+.pending-car img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.pending-car h3 {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.pending-car p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.approve-button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.approve-button:hover {
+    background-color: #218838;
+}
+
+.delete-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    margin-left: 8px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background-color: #ff1a1a;
+}

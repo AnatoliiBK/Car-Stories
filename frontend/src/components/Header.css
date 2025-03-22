@@ -1,0 +1,89 @@
+.header {
+    background-color: #282c34;
+    padding: 10px 20px;
+    color: white;
+    text-align: center;
+    border-bottom: 1px solid #444;
+}
+
+.header-icon {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+/* Адаптація для мобільних */
+@media (max-width: 425px) {
+    .header-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 5px;
+    }
+}
+
+.header-nav {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+    /* Додаємо адаптивність */
+}
+
+.header-link {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    transition: color 0.3s ease;
+    position: relative;
+    /* Для активної вкладки */
+}
+
+/* Стилі для активної сторінки */
+.header-link.active {
+    color: #61dafb;
+    border-bottom: 2px solid #61dafb;
+}
+
+/* Адаптація для планшетів */
+@media (max-width: 768px) {
+    .header-nav {
+        gap: 15px;
+    }
+
+    .header-link {
+        font-size: 14px;
+    }
+}
+
+/* Адаптація для мобільних (425px і менше) */
+@media (max-width: 425px) {
+    .header-nav {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .header-link {
+        font-size: 14px;
+        padding: 5px 0;
+    }
+}
+
+/* Додаткові налаштування для менших екранів */
+@media (max-width: 375px) {
+    .header {
+        padding: 8px 15px;
+    }
+
+    .header-link {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 320px) {
+    .header-link {
+        font-size: 12px;
+    }
+}

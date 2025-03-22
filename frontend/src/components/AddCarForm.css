@@ -1,0 +1,109 @@
+/* 03 01 25 */
+.add-car-form {
+    width: 100%;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    /* background-color: #f9f9f9; */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes colorChange {
+    0% {
+        color: yellow;
+    }
+
+    100% {
+        color: green;
+    }
+}
+
+.add-car-form h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    /* color: #333; */
+    animation: colorChange 1s infinite alternate;
+}
+
+/* Світла тема */
+.add-car-form.light {
+    background-color: #f4f1f1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* input {
+        background-color: #fff;
+    } */
+    
+}
+
+/* Темна тема */
+.add-car-form.dark {
+    background-color: #333;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+    input {
+    background-color: #333;
+    color: #fff;
+    }
+        textarea {
+            background-color: #333;
+            color: #fff;
+        }
+        p {
+            color: #fff;
+        }
+}
+
+/* .add-car-form h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #333;
+} */
+
+.add-car-form input,
+.add-car-form textarea,
+.add-car-form button {
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-car-form textarea {
+    resize: none;
+    height: 100px;
+}
+
+.image-preview {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 200px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.add-car-form button {
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.add-car-form button:hover {
+    background-color: #0056b3;
+}
+
+.add-car-form p {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #555;
+}

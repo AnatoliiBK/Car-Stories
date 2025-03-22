@@ -1,0 +1,39 @@
+/* Значок для відкриття форми */
+.add-car-indicator {
+    color: green;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    cursor: pointer;
+}
+
+/* Модальне вікно */
+.ReactModal__Overlay {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    z-index: 1400;
+    /* Встановлюємо z-index для перекриття NavBar */
+}
+
+.ReactModal__Content {
+    max-height: 90vh; /* Максимальна висота вікна не може перевищувати 90% від висоти вікна браузера (viewport)*/
+    overflow-y: auto; /* Вертикальна прокрутка */   
+    max-width: 500px;
+    margin: auto;
+    border-radius: 10px;
+    z-index: 1400;
+    position: absolute;
+    top: 50%; /* Розташування по верхньому краю */
+    left: 50%; /* Розташування по лівому краю */
+    transform: translate(-50%, -50%); /* Центрування */
+}
+
+/* Кнопка закриття модального вікна */
+.close-modal-button {
+    float: right;
+    background: none;
+    margin-right: 10px;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: blue;
+}

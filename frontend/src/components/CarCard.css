@@ -1,0 +1,297 @@
+/* .car-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  text-align: center;
+  background-color: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+} */
+
+.car-card {
+  position: relative;
+  width: 300px;
+  /* background-color: #fff; */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Світла тема */
+.car-card.light {
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  h3,
+  p {
+    color: #000;
+  }
+}
+
+/* Темна тема */
+.car-card.dark {
+  background-color: #333;
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+  h3,
+  p {
+    color: #fff;
+  }
+}
+
+.car-card .favorite-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  /* color: #ff4d4d; */
+  /* color: #4caf50; */
+  /* color: #ff9800;
+  animation: blink 1.5s infinite; */
+  color: #ffd700;
+  text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ffae00;
+  animation: glow 1.5s infinite;
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.car-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* .car-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 16px;
+} */
+
+.car-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+/* Загальний контейнер для власника */
+.car-owner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-left: 1rem;
+  .owner-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ddd;
+  }
+  .owner-name {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ddd;
+  }
+}
+
+/* Адміністративні дії */
+.admin-actions {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Кнопки адміністратора */
+.admin-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Кнопка "Редагувати" */
+.edit-button {
+  background-color: #4caf50;
+  /* Зелений */
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #45a049;
+}
+
+/* Кнопка "Видалити" */
+.delete-button {
+  background-color: #f44336;
+  /* Червоний */
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #e53935;
+}
+
+.menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.menu-button.light {
+  color: #333;
+}
+
+.menu-button.dark {
+  color: white;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1600;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  padding: 5px 0;
+}
+
+.dropdown-menu.light {
+  background-image: url('../assets/pexels-hngstrm-1939485.jpg');
+}
+
+.dropdown-menu.dark {
+  background-image: url('../assets/pexels-danielabsi-952670.jpg');
+}
+
+.edit-item {
+  background: none;
+  border: none;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.edit-item.light {
+  color: #000;
+}
+
+.edit-item.dark {
+  color: white;
+}
+
+.edit-item:hover {
+  /* background-color: #f0f0f0; */
+  transform: scale(1.1);
+  color: blue;
+}
+
+.delete-item {
+  background: none;
+  border: none;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  width: 100%;
+  font-size: 18px;
+  font-weight: bold;
+  transition: transform 0.3s ease;
+}
+
+.delete-item.light {
+  color: orange;
+}
+
+.delete-item.dark {
+  color: orange;
+}
+
+.delete-item:hover {
+  /* background-color: rgba(255, 0, 0, 0.1); */
+  transform: scale(1.1);
+  color: red;
+}
+
+.specs-button {
+  border: none;
+  border-radius: 4px;
+  padding: 0.1rem 1rem;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.specs-button.light:hover {
+  color: #0056b3;
+  transform: scale(1.03);
+}
+
+.specs-button.dark:hover {
+  color: blue;
+  transform: scale(1.03);
+}
+
+.specs-button.light {
+  background-image: url('../assets/pexels-hngstrm-1939485.jpg');
+  color: black;
+}
+
+.specs-button.dark {
+  background-image: url('../assets/pexels-danielabsi-952670.jpg');
+  color: white;
+}
+
+/* Кнопка "Деталі" */
+.details-button {
+  margin-top: 15px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #2196f3;
+  /* Синій */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.details-button:hover {
+  background-color: #1976d2;
+}
