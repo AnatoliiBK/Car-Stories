@@ -12,12 +12,12 @@ const socket = io(url);
 const CarCard = ({ car, isFavorite, isAdmin, currentUser, onDelete }) => {
   const navigate = useNavigate();
   const { theme } = useTheme();
-   const menuRef = useRef(null); // Посилання на меню
+  const menuRef = useRef(null); // Посилання на меню
 
   // 🔹 Перевіряємо, чи користувач — власник авто
   const isOwner = currentUser?._id === car.createdBy?._id;
-   const [menuOpen, setMenuOpen] = useState(false);
-console.log("IS OWNER : ", isOwner)
+  const [menuOpen, setMenuOpen] = useState(false);
+  // console.log("IS OWNER : ", isOwner);
   const handleDetailsClick = async () => {
     try {
       // 🔹 Відправляємо запит на сервер для додавання авто в переглянуті
@@ -62,7 +62,7 @@ console.log("IS OWNER : ", isOwner)
     <div className={`car-card ${theme}`}>
       {isFavorite && <div className="favorite-indicator">✨</div>}{" "}
       {/* Індикатор */}
-      <img src={car.imageUrl} alt={car.name} className="car-image" />
+      <img src={car.imageUrl} alt={car.name} className="car-image" onClick={handleDetailsClick}/>
       {(isAdmin || isOwner) && (
         <div className="menu-container" ref={menuRef}>
           <button className={`menu-button ${theme}`} onClick={toggleMenu}>
@@ -88,12 +88,12 @@ console.log("IS OWNER : ", isOwner)
           )}
         </div>
       )}
-      <h3>
+      <h3 onClick={handleDetailsClick}>
         {car.brand} {car.name}
       </h3>
       {/* <p>{car.brand}</p>
       <p>{car.name}</p> */}
-      <p>Рік: {car.year}</p>
+      <p onClick={handleDetailsClick}>Рік: {car.year}</p>
       {/* Власник автомобіля */}
       <div className="car-owner">
         <img
@@ -128,7 +128,6 @@ console.log("IS OWNER : ", isOwner)
       )} */}
       {/* Дії для адміністратора або власника */}
       {/* Меню дій (редагування/видалення) */}
-      
       {/* {(isAdmin || isOwner) && (
         <div className="admin-actions">
           <button
@@ -147,9 +146,9 @@ console.log("IS OWNER : ", isOwner)
           )}
         </div>
       )} */}
-      <button className="details-button" onClick={handleDetailsClick}>
+      {/* <button className="details-button" onClick={handleDetailsClick}>
         Деталі
-      </button>
+      </button> */}
     </div>
   );
 };

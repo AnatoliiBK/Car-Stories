@@ -5,6 +5,7 @@ import CarCard from "./CarCard";
 import SearchBar from "./SearchBar"; // 25 01 25
 import { setHeaders, url } from "../slices/api";
 import io from "socket.io-client";
+import { useSelector } from "react-redux";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
@@ -14,6 +15,7 @@ const Favorites = () => {
   const [year, setYear] = useState(""); // 25 01 25 Для пошуку за роком
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+   const currentUser = useSelector((state) => state.auth);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -115,7 +117,7 @@ const Favorites = () => {
         <div className="fav-list">
           {filteredFavorites.length > 0 ? (
             filteredFavorites.map((unit) => (
-              <CarCard key={unit.car._id} car={unit.car} />
+              <CarCard key={unit.car._id} car={unit.car} currentUser={currentUser}/>
             ))
           ) : (
             <p className="no-cars-message">Автомобілі не знайдено 😔</p>

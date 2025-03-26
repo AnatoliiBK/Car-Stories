@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { url, setHeaders } from "../slices/api";
-import "./Header.css"
+import "./Header.css";
 // import Flag from "../assets/racing flag waving in the wind.webp";
 
 const Header = () => {
@@ -25,20 +25,19 @@ const Header = () => {
   const [viewedCarsCount, setViewedCarsCount] = useState(0); // 7 02 25
   const [myCarsCount, setMyCarsCount] = useState(0);
   const location = useLocation();
-  
-  
+
   console.log("VIEWED CARS VIEWED CARS : ", viewedCars);
 
   // 🔹 Функція для отримання улюблених авто для поточного користувача
-    const fetchFavoritesCount = async () => {
-      try {
-        const response = await axios.get(`${url}/favorites`, setHeaders());
-        setFavoritesCount(response.data.length);
-      } catch (err) {
-        console.error("Помилка завантаження улюблених авто:", err);
-      }
+  const fetchFavoritesCount = async () => {
+    try {
+      const response = await axios.get(`${url}/favorites`, setHeaders());
+      setFavoritesCount(response.data.length);
+    } catch (err) {
+      console.error("Помилка завантаження улюблених авто:", err);
+    }
   };
-  
+
   // 🔹 Отримуємо кількість автомобілів, які належать поточному користувачеві ✅
   const fetchMyCarsCount = async () => {
     try {
@@ -48,7 +47,7 @@ const Header = () => {
       console.error("Помилка отримання моїх авто:", err);
     }
   };
-  
+
   // 🔹 Новий useEffect: при зміні auth._id завантажуємо переглянуті авто для поточного користувача 7 02 25
   useEffect(() => {
     if (auth._id) {
@@ -68,11 +67,10 @@ const Header = () => {
       fetchMyCarsCount();
     } else {
       setFavoritesCount(0);
-       setMyCarsCount(0);
+      setMyCarsCount(0);
     }
   }, [auth._id]);
 
-  
   useEffect(() => {
     // 🔹 Функція для отримання всіх автомобілів
     const fetchCarCounts = async () => {
@@ -169,22 +167,67 @@ const Header = () => {
             {/* <Link to="/" className={`header-link ${location.pathname === "/" ? "active" : ""}`}>
               <img src={Flag} alt="Головна" className="header-icon" />
             </Link> */}
-            <Link to="/cars" className={`header-link ${location.pathname === "/cars" ? "active" : ""}`}>
-              Автомобілі світу {carCount > 0 && <span className="pending-badge">{carCount}</span>}
+            <Link
+              to="/cars"
+              className={`header-link ${
+                location.pathname === "/cars" ? "active" : ""
+              }`}
+            >
+              Автомобілі світу{" "}
+              {carCount > 0 && (
+                <span className="pending-badge">{carCount}</span>
+              )}
             </Link>
-            <Link to="/classic-cars" className={`header-link ${location.pathname === "/classic-cars" ? "active" : ""}`}>
-              Класичні автомобілі {classicCarCount > 0 && <span className="pending-badge">{classicCarCount}</span>}
+            <Link
+              to="/classic-cars"
+              className={`header-link ${
+                location.pathname === "/classic-cars" ? "active" : ""
+              }`}
+            >
+              Класичні автомобілі{" "}
+              {classicCarCount > 0 && (
+                <span className="pending-badge">{classicCarCount}</span>
+              )}
             </Link>
-            <Link to="/favorites" className={`header-link ${location.pathname === "/favorites" ? "active" : ""}`}>
-              Улюблені {favoritesCount > 0 && <span className="pending-badge">{favoritesCount}</span>}
+            <Link
+              to="/favorites"
+              className={`header-link ${
+                location.pathname === "/favorites" ? "active" : ""
+              }`}
+            >
+              Улюблені{" "}
+              {favoritesCount > 0 && (
+                <span className="pending-badge">{favoritesCount}</span>
+              )}
             </Link>
-            <Link to="/viewed-cars" className={`header-link ${location.pathname === "/viewed-cars" ? "active" : ""}`}>
-              Переглянуті {viewedCarsCount > 0 && <span className="pending-badge">{viewedCarsCount}</span>}
+            <Link
+              to="/viewed-cars"
+              className={`header-link ${
+                location.pathname === "/viewed-cars" ? "active" : ""
+              }`}
+            >
+              Переглянуті{" "}
+              {viewedCarsCount > 0 && (
+                <span className="pending-badge">{viewedCarsCount}</span>
+              )}
             </Link>
-            <Link to="/my-cars" className={`header-link ${location.pathname === "/my-cars" ? "active" : ""}`}>
-              Мої авто {myCarsCount > 0 && <span className="pending-badge">{myCarsCount}</span>}
+            <Link
+              to="/my-cars"
+              className={`header-link ${
+                location.pathname === "/my-cars" ? "active" : ""
+              }`}
+            >
+              Мої авто{" "}
+              {myCarsCount > 0 && (
+                <span className="pending-badge">{myCarsCount}</span>
+              )}
             </Link>
-            <Link to="/cart" className={`header-link ${location.pathname === "/cart" ? "active" : ""}`}>
+            <Link
+              to="/cart"
+              className={`header-link ${
+                location.pathname === "/cart" ? "active" : ""
+              }`}
+            >
               Кошик
             </Link>
             <Link
@@ -201,10 +244,20 @@ const Header = () => {
           </>
         ) : (
           <>
-            <Link to="/login" className={`header-link ${location.pathname === "/login" ? "active" : ""}`}>
+            <Link
+              to="/login"
+              className={`header-link ${
+                location.pathname === "/login" ? "active" : ""
+              }`}
+            >
               Вхід
             </Link>
-            <Link to="/register" className={`header-link ${location.pathname === "/register" ? "active" : ""}`}>
+            <Link
+              to="/register"
+              className={`header-link ${
+                location.pathname === "/register" ? "active" : ""
+              }`}
+            >
               Реєстрація
             </Link>
           </>

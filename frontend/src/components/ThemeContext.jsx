@@ -7,13 +7,13 @@ export const ThemeProvider = ({ children }) => {
 
   const [theme, setTheme] = useState(() => {
     // Встановлення початкового значення теми з localStorage або значення за замовчуванням "light"
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme ? savedTheme : 'light';
+    const savedTheme = localStorage.getItem("theme");
+    return savedTheme ? savedTheme : "light";
   });
-
+  // console.log("THEME :", theme, typeof theme); // typeof - string
   useEffect(() => {
     // Збереження теми в localStorage при зміні теми
-    localStorage.setItem('theme', theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {
