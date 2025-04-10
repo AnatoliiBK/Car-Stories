@@ -12,6 +12,55 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const streamifier = require("streamifier"); //для завантаження зображень через потік
 
+router.get("/car-filtered", async (req, res) => {
+  try {
+    const { brand, model, year, sort, page = 1, limit = 10 } = req.query;
+
+    const filter = { approved: true };
+
+    // Фільтрація (регістронезалежний пошук)
+    if (brand) filter.brand = new RegExp(brand, "i");
+    if (model) filter.name = new RegExp(model, "i"); // Пошук за моделлю
+    // if (year) filter.year = year; // Фільтруємо за роком
+    if (year) {
+      const yearNumber = parseInt(year, 10); // Конвертуємо введене значення у число
+      if (!isNaN(yearNumber)) {
+        const length = year.length; // Довжина введеного значення
+        const startRange = yearNumber * Math.pow(10, 4 - length); // Початок діапазону
+        const endRange = (yearNumber + 1) * Math.pow(10, 4 - length) - 1; // Кінець діапазону
+
+        filter.year = { $gte: startRange, $lte: endRange }; // Створюємо діапазон для фільтрації
+      }
+    }
+
+    // Формуємо сортування
+    const sortOptions = {};
+    if (sort === "name") sortOptions.name = 1;
+    if (sort === "year") sortOptions.year = -1;
+
+    // ✅ Додано стабільне сортування по _id
+    sortOptions._id = 1;
+
+    // Отримуємо загальну кількість записів
+    const totalCars = await Car.countDocuments(filter);
+    const totalPages = Math.ceil(totalCars / limit);
+
+    // Отримуємо машини з пагінацією
+    const cars = await Car.find(filter)
+      .populate("createdBy", "name avatar")
+      .sort(sortOptions)
+      .skip((page - 1) * parseInt(limit))
+      .limit(parseInt(limit));
+
+    res.status(200).json({ cars, totalPages });
+  } catch (err) {
+    res.status(500).json({
+      message: "Помилка при отриманні автомобілів",
+      error: err.message,
+    });
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     const { brand, year, sort } = req.query; // Отримуємо параметри з запиту
@@ -27,6 +76,9 @@ router.get("/", async (req, res) => {
     const sortOptions = {};
     if (sort === "name") sortOptions.name = 1; // Сортування за назвою (A-Z)
     if (sort === "year") sortOptions.year = -1; // Сортування за роком (новіші)
+
+    // ✅ Додано стабільне сортування по _id
+    sortOptions._id = 1;
 
     // Виконуємо пошук у базі даних
     // const cars = await Car.find(filter).sort(sortOptions);

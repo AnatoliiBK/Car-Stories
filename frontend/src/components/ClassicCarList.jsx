@@ -137,6 +137,14 @@ const ClassicCarList = () => {
     }
   };
 
+  const handleFilterChange = (newFilterValue, filterType) => {
+  if (filterType === "brand") setCarName(newFilterValue);
+  if (filterType === "model") setCarModel(newFilterValue);
+  if (filterType === "year") setYear(newFilterValue);
+
+  // setPage(1);  // ОНОВЛЮЄМО СТОРІНКУ НА ПЕРШУ ПРИ ЗМІНІ ФІЛЬТРА
+};
+
   if (loading) return <p>Завантаження...</p>;
   if (error) return <p>{error}</p>;
 
@@ -149,6 +157,7 @@ const ClassicCarList = () => {
         setCarModel={setCarModel}
         year={year}
         setYear={setYear}
+        handleFilterChange={handleFilterChange}
       />
       <div className="cars-container">
         <h1>Класичні автомобілі (до 1987 року)</h1>

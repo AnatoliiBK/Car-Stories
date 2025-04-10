@@ -1,89 +1,160 @@
+.header-container {
+    position: relative;
+}
 .header {
-    background-color: #282c34;
-    padding: 10px 20px;
-    color: white;
-    text-align: center;
-    border-bottom: 1px solid #444;
+  background-color: #282c34;
+  padding: 10px 20px;
+  color: white;
+  text-align: center;
+  border-bottom: 1px solid #444;
 }
 
-.header-icon {
-    width: 24px;
-    height: 24px;
-    vertical-align: middle;
-    margin-right: 8px;
+
+/* 🔻 Стилі для декоративного трикутника */
+.mobile-toggle {
+  width: 0;
+  height: 0;
+  margin-left: 1.2rem;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  /* border-top: 24px solid #333; */
+  border-top: 24px solid gold;
+  transition: transform 0.4s ease;
+  cursor: pointer;
+  z-index: 999;
+  position: absolute;
+  top: 10px;
+animation: spin 1s ease-in-out 1 1s;
 }
 
-/* Адаптація для мобільних */
-@media (max-width: 425px) {
-    .header-icon {
-        width: 20px;
-        height: 20px;
-        margin-right: 5px;
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+        /* Початкова позиція */
+    }
+
+    to {
+        transform: rotate(360deg);
+        /* Кінцева позиція — повний оберт */
     }
 }
 
+/* 🔄 Обертання при відкритті меню */
+.mobile-toggle.rotated {
+  transform: rotate(180deg);
+}
+
+/* 📱 Ховаємо трикутник на великих екранах */
+@media (min-width: 769px) {
+  .mobile-toggle {
+    display: none;
+  }
+}
+
+.header-icon {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
 .header-nav {
-    display: flex;
-    justify-content: center;
-    gap: 25px;
-    flex-wrap: wrap;
-    /* Додаємо адаптивність */
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  flex-wrap: wrap;
+  z-index: 1760;
+  /* Додаємо адаптивність */
 }
 
 .header-link {
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: bold;
-    transition: color 0.3s ease;
-    position: relative;
-    /* Для активної вкладки */
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+  transition: color 0.3s ease;
+  position: relative;
+  /* Для активної вкладки */
 }
 
 /* Стилі для активної сторінки */
 .header-link.active {
-    color: #61dafb;
-    border-bottom: 2px solid #61dafb;
+  color: #61dafb;
+  border-bottom: 2px solid #61dafb;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Адаптація для планшетів */
 @media (max-width: 768px) {
-    .header-nav {
-        gap: 15px;
-    }
+  .header {
+    padding: 0px;
+    
+  }
+    .header-nav.light {
+    background-image: url("../assets/pexels-hngstrm-1939485.jpg");
+  }
+  .header-nav.dark {
+    background-image: url("../assets/pexels-danielabsi-952670.jpg");
+  }
+  .header-nav {
+    gap: 15px;
+    display: none;
+    flex-direction: column;
+    /* background-color: #fff; */
+    padding: 1rem;
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* border-radius: 12px; */
+  }
 
-    .header-link {
-        font-size: 14px;
-    }
+  .header-nav.open {
+    display: flex;
+    animation: slideDown 0.4s ease forwards;
+  }
+
+  .header-link {
+    /* font-size: 14px; */
+  }
+  .header-nav.light .header-link {
+    color: black;
+    /* ✅ Чорний текст у світлій темі */
+  }
+
+  .header-nav.dark .header-link {
+    color: white;
+    /* ✅ Білий текст у темній темі */
+  }
 }
 
 /* Адаптація для мобільних (425px і менше) */
 @media (max-width: 425px) {
-    .header-nav {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
+  .header-nav {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
 
-    .header-link {
-        font-size: 14px;
-        padding: 5px 0;
-    }
-}
+  .header-link {
+    /* font-size: 14px; */
+    padding: 5px 0;
+  }
 
-/* Додаткові налаштування для менших екранів */
-@media (max-width: 375px) {
-    .header {
-        padding: 8px 15px;
-    }
-
-    .header-link {
-        font-size: 13px;
-    }
-}
-
-@media (max-width: 320px) {
-    .header-link {
-        font-size: 12px;
-    }
+  .header-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+  }
 }

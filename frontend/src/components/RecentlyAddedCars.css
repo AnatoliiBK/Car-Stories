@@ -4,6 +4,7 @@
     padding: 10px 20px;
     overflow-x: auto;
     background-color: #f5f5f5;
+    z-index: 1700;
     /* або залежно від теми */
 }
 

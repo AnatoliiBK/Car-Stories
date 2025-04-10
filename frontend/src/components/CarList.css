@@ -2,6 +2,20 @@
     padding: 2rem;
 }
 
+
+@media (max-width: 375.98px) {
+    .cars-container {
+            padding: 1rem;
+        }
+}
+
+
+@media (max-width: 320.98px) {
+    .cars-container {
+            padding: 0rem;
+        }
+}
+
 @keyframes colorChange {
     0% {
         color: yellow;

@@ -99,6 +99,14 @@ const Favorites = () => {
     setFilteredFavorites(filtered);
   }, [carName, carModel, year, favorites]);
 
+  const handleFilterChange = (newFilterValue, filterType) => {
+  if (filterType === "brand") setCarName(newFilterValue);
+  if (filterType === "model") setCarModel(newFilterValue);
+  if (filterType === "year") setYear(newFilterValue);
+
+  // setPage(1);  // ОНОВЛЮЄМО СТОРІНКУ НА ПЕРШУ ПРИ ЗМІНІ ФІЛЬТРА
+};
+
   if (loading) return <p>Завантаження...</p>;
   if (error) return <p>{error}</p>;
 
@@ -111,6 +119,7 @@ const Favorites = () => {
         setCarModel={setCarModel}
         year={year}
         setYear={setYear}
+        handleFilterChange={handleFilterChange}
       />
       <div className={`favorites`}>
         <h1>Мої улюблені автомобілі</h1>

@@ -32,7 +32,7 @@ const RecentlyAddedCars = () => {
   const filterRecentCars = (cars) => {
     const now = new Date();
     const timeApproved = new Date();
-    timeApproved.setDate(now.getDate() - 60);
+    timeApproved.setDate(now.getDate() - 100);
 
     return cars.filter((car) => {
       const createdAt = new Date(car.createdAt);
@@ -134,10 +134,37 @@ const RecentlyAddedCars = () => {
   };
  
 
+  // return (
+  //   <div className={`recently-added-cars ${theme}`}>
+  //     {recentCars.length > 0 ? (
+  //       recentCars.map((car) => {
+  //         const isFavorite = favoriteCarIds.includes(car._id);
+  //         return (
+  //           <div key={car._id} className="recently-added-car-container">
+  //             <img
+  //               src={car.imageUrl}
+  //               alt={car.name}
+  //               className="recently-added-car-image"
+  //               title={car.name}
+  //               onClick={() => handleDetailsClick(car._id)}
+  //             />
+  //             {isFavorite && <div className="favorite-indicator">✨</div>}
+  //           </div>
+  //         );
+  //       })
+  //     ) : (
+  //       // <p className="no-cars-message">Автомобілі не знайдено 😔</p>
+  //       <div className="no-cars-placeholder">
+  //         <p>Нових автомобілів поки що немає</p>
+  //       </div>
+  //     )}
+  //   </div>
+  // );
   return (
-    <div className={`recently-added-cars ${theme}`}>
-      {recentCars.length > 0 ? (
-        recentCars.map((car) => {
+  <>
+    {recentCars.length > 0 && (
+      <div className={`recently-added-cars ${theme}`}>
+        {recentCars.map((car) => {
           const isFavorite = favoriteCarIds.includes(car._id);
           return (
             <div key={car._id} className="recently-added-car-container">
@@ -151,15 +178,11 @@ const RecentlyAddedCars = () => {
               {isFavorite && <div className="favorite-indicator">✨</div>}
             </div>
           );
-        })
-      ) : (
-        // <p className="no-cars-message">Автомобілі не знайдено 😔</p>
-        <div className="no-cars-placeholder">
-          <p>Нових автомобілів поки що немає</p>
-        </div>
-      )}
-    </div>
-  );
+        })}
+      </div>
+    )}
+  </>
+);
 };
 
 export default RecentlyAddedCars;

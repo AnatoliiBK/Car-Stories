@@ -1,11 +1,22 @@
 .landing-page {
+    position: relative;
     height: 100vh;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    background-image: url('../assets/Nature.png');
+    align-items: flex-start;
+    /* padding-top: 3rem; */
+    /* justify-content: center; */
+    /* background-image: url('../assets/Night Road 1.jpg'); */
+    /* background-image: url('../assets/Sun Road 1.png'); */
     background-size: cover;
     background-position: center;
+}
+
+.landing-page.light {
+    background-image: url('../assets/Sun Road 1.png');
+}
+
+.landing-page.dark {
+    background-image: url('../assets/Night Road 1.jpg');
 }
 
 .landing-content {
@@ -13,21 +24,151 @@
     color: #fff;
 }
 
-.landing-buttons {
-    margin-top: 20px;
+/* .landing-images {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    gap: 50px;
+} */
+
+/* .car-link {
+    display: inline-block;
+    position: relative;
+} */
+
+/* .car-image {
+    transition: transform 0.3s ease-in-out;
 }
 
-@media (max-width: 374.98px) {
-    .landing-buttons {
-        flex-direction: column;
-        align-items: center;
-        row-gap: 2rem;
+.car-image:hover {
+    transform: scale(1.1);
+} */
+
+/* .sports-car {
+    animation: moveSportsCar 3s infinite alternate ease-in-out;
+    transition: transform 0.3s ease-in-out;
+    position: absolute;
+    bottom: 300px;
+}
+
+
+
+@keyframes moveSportsCar {
+    from {
+        transform: translateX(-20px);
+    }
+
+    to {
+        transform: translateX(20px);
+    }
+} */
+
+.sports-car {
+    animation: moveSportsCar 3s forwards ease-in-out;
+    /* forwards зупинить об'єкт у кінцевій позиції */
+    transition: transform 0.3s ease-in-out;
+    position: absolute;
+    bottom: 300px;
+}
+
+@keyframes moveSportsCar {
+    from {
+        transform: translateX(-20px);
+        /* початкова позиція */
+    }
+
+    to {
+        transform: translateX(20px);
+        /* кінцева позиція, наприклад 200px вперед */
     }
 }
 
-.landing-buttons .btn {
+
+/* .classic-car {
+    animation: moveClassicCar 3s infinite alternate ease-in-out;
+} */
+/* @keyframes moveClassicCar {
+    from {
+        transform: translateY(-10px);
+    }
+
+    to {
+        transform: translateY(10px);
+    }
+} */
+
+/* .landing-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+} */
+
+@media (max-width: 1000px) {
+    .sports-car {
+        bottom: 280px;
+        height: 330px;
+    }
+}
+
+@media (max-width: 868px) {
+    .sports-car {
+        bottom: 280px;
+        height: 290px;
+    }
+}
+
+@media (max-width: 768.98px) {
+   .sports-car {
+        bottom: 250px;
+        height: 220px;
+    }
+}
+
+@media (max-width: 425.98px) {
+    .sports-car {
+        bottom: 310px;
+        height: 140px;
+    }
+}
+
+@media (max-width: 375.98px) {
+    .sports-car {
+       bottom: 320px;
+       height: 130px;
+    }
+}
+
+@media (max-width: 320.98px) {
+    .sports-car {
+        bottom: 320px;
+        height: 120px;
+    }
+}
+
+.sound-notice {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 100;
+}
+
+.sound-notice:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.sound-icon {
+    font-size: 24px;
+}
+
+/* .landing-buttons .btn {
     margin: 0 10px;
     padding: 10px 20px;
     background-color: #007bff;
@@ -39,4 +180,4 @@
 
 .landing-buttons .btn:hover {
     background-color: #0056b3;
-}
+} */

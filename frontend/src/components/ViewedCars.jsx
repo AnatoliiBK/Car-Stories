@@ -106,6 +106,14 @@ const ViewedCars = () => {
     }
   };
 
+  const handleFilterChange = (newFilterValue, filterType) => {
+  if (filterType === "brand") setCarName(newFilterValue);
+  if (filterType === "model") setCarModel(newFilterValue);
+  if (filterType === "year") setYear(newFilterValue);
+
+  // setPage(1);  // ОНОВЛЮЄМО СТОРІНКУ НА ПЕРШУ ПРИ ЗМІНІ ФІЛЬТРА
+};
+
 
   return (
     <>
@@ -116,6 +124,7 @@ const ViewedCars = () => {
         setCarModel={setCarModel}
         year={year}
         setYear={setYear}
+        handleFilterChange={handleFilterChange}
       />
       <div className="cars-container">
       <h1>Переглянуті автомобілі</h1>

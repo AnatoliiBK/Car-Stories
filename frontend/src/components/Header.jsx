@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { logoutUser } from "../slices/authSlice";
@@ -8,6 +8,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import { url, setHeaders } from "../slices/api";
 import "./Header.css";
+import { useTheme } from "../components/ThemeContext";
 // import Flag from "../assets/racing flag waving in the wind.webp";
 
 const Header = () => {
@@ -16,15 +17,44 @@ const Header = () => {
   const viewedCars = useSelector((state) => state.viewedCars.viewedCars); // ✅ Беремо з Redux 5 02 25
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { theme } = useTheme();
+
   const user = usersList?.find((u) => u._id === auth._id);
   const [userAvatar, setUserAvatar] = useState(user?.avatar || "");
+
   const [carCount, setCarCount] = useState(0);
   const [favoritesCount, setFavoritesCount] = useState(0);
   // const [recentlyAddedCount, setRecentlyAddedCount] = useState(0); // 1 02 25
   const [classicCarCount, setClassicCarCount] = useState(0); // Лічильник класичних авто
   const [viewedCarsCount, setViewedCarsCount] = useState(0); // 7 02 25
   const [myCarsCount, setMyCarsCount] = useState(0);
-  const location = useLocation();
+
+  // 🔸 Стан для мобільного меню
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // 🔸 Використовуємо рефи для визначення кліку поза меню
+  const menuRef = useRef(null);
+  const toggleRef = useRef(null);
+
+  // 📌 Закриття меню при кліку поза ним
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target) &&
+        toggleRef.current &&
+        !toggleRef.current.contains(event.target)
+      ) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  
 
   console.log("VIEWED CARS VIEWED CARS : ", viewedCars);
 
@@ -160,8 +190,18 @@ const Header = () => {
   }, [dispatch]);
 
   return (
-    <header className="header">
-      <nav className="header-nav">
+    <div className="header-container">
+      <header className="header">
+      <div
+        ref={toggleRef}
+        className={`mobile-toggle ${isMobileMenuOpen ? "rotated" : ""}`}
+        onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+      />
+      {/* <nav className="header-nav"> */}
+      <nav
+        ref={menuRef}
+        className={`header-nav ${isMobileMenuOpen ? "open" : ""} ${theme}`}
+      >
         {auth._id ? (
           <>
             {/* <Link to="/" className={`header-link ${location.pathname === "/" ? "active" : ""}`}>
@@ -264,6 +304,8 @@ const Header = () => {
         )}
       </nav>
     </header>
+    </div>
+    
   );
 };
 
