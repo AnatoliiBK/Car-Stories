@@ -1,6 +1,6 @@
 import "./App.css";
 import React, { useEffect, useRef } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { loadUser } from "./slices/authSlice";
 import { ThemeProvider, useTheme } from "./components/ThemeContext";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
@@ -42,12 +42,14 @@ import CarSpecsPage from "./components/CarSpecsPage";
 import AddCarSpecs from "./components/AddCarSpecs";
 import EditCarPage from "./components/EditCarPage";
 import MyCarsList from "./components/MyCarsList";
+import CarSearchBar from "./components/CarSearchBar";
 
 const AppContent = () => {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const location = useLocation();
   const nodeRef = useRef(null); // Додаємо реф для CSSTransition
+  const user = useSelector((state) => state.users);
 
   useEffect(() => {
     document.body.className = theme === "light" ? "light-theme" : "dark-theme";
@@ -62,6 +64,7 @@ const AppContent = () => {
       <ToastContainer />
       <NavBar />
       <Header />
+      {user && <CarSearchBar />}
       <RecentlyAddedCars />
       <div className="content-container">
         <TransitionGroup>

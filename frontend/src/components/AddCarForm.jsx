@@ -79,6 +79,7 @@ const AddCarForm = () => {
   return (
     <form className={`add-car-form ${theme}`} onSubmit={handleSubmit}>
       <h2>Додати автомобіль</h2>
+      <p>Доданий вами автомобіль з'явиться в каталозі після перевірки</p>
       <input
         type="text"
         name="name"

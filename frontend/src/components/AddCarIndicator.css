@@ -1,7 +1,11 @@
 /* Значок для відкриття форми */
+.indicator-container {
+    position: relative;
+}
+
 .add-car-indicator {
     color: green;
-    position: fixed;
+    position: absolute;
     bottom: 20px;
     right: 20px;
     cursor: pointer;

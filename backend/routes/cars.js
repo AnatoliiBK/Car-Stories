@@ -12,6 +12,73 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const streamifier = require("streamifier"); //для завантаження зображень через потік
 
+router.get("/car-filtered-range", async (req, res) => {
+  try {
+    const {
+      brand,
+      model,
+      yearFrom,
+      yearTo,
+      sort,
+      page = 1,
+      limit = 10,
+    } = req.query;
+    console.log("Отримано роки:", yearFrom, yearTo);
+
+    const filter = { approved: true };
+
+    if (brand) filter.brand = new RegExp(brand, "i");
+    if (model) filter.name = new RegExp(model, "i");
+
+    if (yearFrom || yearTo) {
+      const yearFilter = {};
+
+      if (yearFrom) {
+        const fromNum = parseInt(yearFrom, 10);
+        if (!isNaN(fromNum)) {
+          const length = yearFrom.length;
+          const fromRange = fromNum * Math.pow(10, 4 - length);
+          yearFilter.$gte = fromRange;
+        }
+      }
+
+      if (yearTo) {
+        const toNum = parseInt(yearTo, 10);
+        if (!isNaN(toNum)) {
+          const length = yearTo.length;
+          const toRange = (toNum + 1) * Math.pow(10, 4 - length) - 1;
+          yearFilter.$lte = toRange;
+        }
+      }
+
+      if (Object.keys(yearFilter).length > 0) {
+        filter.year = yearFilter;
+      }
+    }
+
+    const sortOptions = {};
+    if (sort === "name") sortOptions.name = 1;
+    if (sort === "year") sortOptions.year = -1;
+    sortOptions._id = 1;
+
+    const totalCars = await Car.countDocuments(filter);
+    const totalPages = Math.ceil(totalCars / limit);
+
+    const cars = await Car.find(filter)
+      .populate("createdBy", "name avatar")
+      .sort(sortOptions)
+      .skip((page - 1) * parseInt(limit))
+      .limit(parseInt(limit));
+
+    res.status(200).json({ cars, totalPages });
+  } catch (err) {
+    res.status(500).json({
+      message: "Помилка при фільтрації автомобілів",
+      error: err.message,
+    });
+  }
+});
+
 router.get("/car-filtered", async (req, res) => {
   try {
     const { brand, model, year, sort, page = 1, limit = 10 } = req.query;

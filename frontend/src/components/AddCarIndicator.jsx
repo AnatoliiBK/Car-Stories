@@ -19,7 +19,7 @@ const AddCarIndicator = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <div>
+    <div className="indicator-container">
       {/* Значок */}
       <FaPlusCircle
         onClick={openModal}
