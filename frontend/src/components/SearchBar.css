@@ -28,3 +28,66 @@
     background-color: #333;
     color: #fff;
 }
+
+.results-counter {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background-color: #f0f0f0;
+    padding: 10px 16px;
+    margin: 10px 0;
+    border-radius: 12px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: fadeSlideIn 0.5s ease-out forwards;
+    opacity: 0;
+    transform: translateY(-10px);
+    cursor: pointer;
+}
+
+@keyframes fadeSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.results-counter.dark {
+    background-color: #333;
+    color: #fff;
+}
+
+.clear-button {
+    margin-left: 10px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #ff5c5c;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.clear-button:hover {
+    background-color: #e64545;
+}
+
+.car-list.hidden {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.4s ease-in-out;
+}
+
+.car-list.show {
+    max-height: 9999px;
+    opacity: 1;
+    transition: all 0.4s ease-in-out;
+}

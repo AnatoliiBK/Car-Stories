@@ -49,7 +49,7 @@ const AppContent = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const nodeRef = useRef(null); // Додаємо реф для CSSTransition
-  const user = useSelector((state) => state.users);
+  const user = useSelector((state) => state.auth._id);
 
   useEffect(() => {
     document.body.className = theme === "light" ? "light-theme" : "dark-theme";
@@ -59,13 +59,26 @@ const AppContent = () => {
     dispatch(loadUser(null));
   }, [dispatch]);
 
+  // Відстеження зміни стану користувача
+  useEffect(() => {
+    // Цей ефект спрацьовує при кожній зміні user
+    if (!user) {
+      console.log("Користувач вийшов, RecentlyAddedCars не рендериться");
+      // Додаткова логіка, якщо потрібно (наприклад, очищення даних)
+    } else {
+      console.log("Користувач авторизований, RecentlyAddedCars рендериться");
+    }
+  }, [user]); // Залежність від user забезпечує миттєву реакцію
+
   return (
     <div className="App">
       <ToastContainer />
       <NavBar />
       <Header />
       {user && <CarSearchBar />}
-      <RecentlyAddedCars />
+      {/* <RecentlyAddedCars /> */}
+      {user && <RecentlyAddedCars />}
+
       <div className="content-container">
         <TransitionGroup>
           <CSSTransition
@@ -92,7 +105,11 @@ const AppContent = () => {
 
                 <Route path="classic-cars" element={<ClassicCarList />} />
 
-                <Route path="recently-cars" element={<RecentlyAddedCars />} />
+                {/* <Route path="recently-cars" element={<RecentlyAddedCars />} /> */}
+                {/* <Route
+                  path="recently-cars"
+                  element={user && <RecentlyAddedCars />}
+                /> */}
                 <Route path="/viewed-cars" element={<ViewedCars />} />
                 <Route path="/my-cars" element={<MyCarsList />} />
 
