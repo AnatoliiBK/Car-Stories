@@ -43,6 +43,7 @@ import AddCarSpecs from "./components/AddCarSpecs";
 import EditCarPage from "./components/EditCarPage";
 import MyCarsList from "./components/MyCarsList";
 import CarSearchBar from "./components/CarSearchBar";
+import FilteredCarsPage from "./components/FilteredCarsPage";
 
 const AppContent = () => {
   const { theme } = useTheme();
@@ -75,10 +76,10 @@ const AppContent = () => {
       <ToastContainer />
       <NavBar />
       <Header />
-      {user && <CarSearchBar />}
+
       {/* <RecentlyAddedCars /> */}
       {user && <RecentlyAddedCars />}
-
+      {/* {user && <CarSearchBar />} */}
       <div className="content-container">
         <TransitionGroup>
           <CSSTransition
@@ -104,6 +105,7 @@ const AppContent = () => {
                 <Route path="/details" element={<Details />} />
 
                 <Route path="classic-cars" element={<ClassicCarList />} />
+                <Route path="/filtered-cars" element={<FilteredCarsPage />} />
 
                 {/* <Route path="recently-cars" element={<RecentlyAddedCars />} /> */}
                 {/* <Route

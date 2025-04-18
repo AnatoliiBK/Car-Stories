@@ -1,3 +1,62 @@
+.triangle-container {
+    position: relative;
+}
+
+.triangle-toggle {
+    width: 0;
+    height: 0;
+    margin-left: 1.2rem;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-top: 26px solid gold;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    position: absolute;
+    top: 0px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+}
+
+.triangle-toggle.rotated {
+    /* transform: rotate(180deg); */
+    transform: translateX(-50%) rotate(180deg);
+}
+
+.search-bar-wrapper {
+    /* margin-top: 3rem; */
+    padding: 1rem;
+    border-radius: 12px;
+    /* background-color: #f9f9f9; */
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    animation: fadeInSlide 0.4s ease forwards;
+    p {
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+    }
+}
+
+.search-bar-wrapper.light {
+    background-image: url('../assets/pexels-hngstrm-1939485.jpg');
+}
+
+.search-bar-wrapper.dark {
+    background-image: url('../assets/pexels-danielabsi-952670.jpg');
+}
+
+/* Анімація появи */
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .search-bar {
     display: flex;
     gap: 10px;

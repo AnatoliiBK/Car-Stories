@@ -1,64 +1,230 @@
-import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState } from "react";
+// import axios from "axios";
+// import io from "socket.io-client";
+// import "./CarList.css";
+// import CarCard from "./CarCard";
+// import SearchBar from "./SearchBar";
+// import { url, setHeaders } from "../slices/api";
+// import PageNavigation from "./PageNavigation";
+
+// const CarList = () => {
+//   const [cars, setCars] = useState([]);
+//   const [favorites, setFavorites] = useState([]);
+//   const [carName, setCarName] = useState(""); // для пошуку за маркою
+//   const [carModel, setCarModel] = useState(""); // для пошуку за моделлю
+//   const [year, setYear] = useState(""); // для пошуку за роком
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState("");
+//   const [isAdmin, setIsAdmin] = useState(false);
+//   const [currentUser, setCurrentUser] = useState(null);
+
+//   const [page, setPage] = useState(1); // Поточна сторінка
+//   const [limit] = useState(2); // Кількість авто на сторінку
+//   const [totalPages, setTotalPages] = useState(1); // Загальна кількість сторінок
+
+//   useEffect(() => {
+//     const fetchCarsAndFavorites = async () => {
+//       try {
+//          // Додаємо фільтри до запиту
+//       const queryParams = new URLSearchParams({
+//         brand: carName,
+//         model: carModel,
+//         year: year,
+//         sort: "year", // або інше значення для сортування
+//         page: page,
+//         limit: limit,
+//       });
+//         const [carResponse, favoriteResponse, userResponse] = await Promise.all([
+//           // axios.get(
+//           //   `${url}/cars/car-filtered?brand=${carName}&model=${carModel}&year=${year}&page=${page}&limit=${limit}`
+//           // ),
+//           axios.get(`${url}/cars/car-filtered?${queryParams.toString()}`), // додаємо фільтри до запиту
+//           axios.get(`${url}/favorites`, setHeaders()),
+//           axios.get(`${url}/users/me`, setHeaders()),
+//         ]);
+
+//         setCars(carResponse.data.cars);
+//         setTotalPages(carResponse.data.totalPages);
+//         setFavorites(favoriteResponse.data.map((fav) => fav.car?._id));
+//         setIsAdmin(userResponse.data.isAdmin);
+//         setCurrentUser(userResponse.data);
+//         setLoading(false);
+//       } catch (err) {
+//         console.error("Помилка завантаження даних:", err);
+//         setError("Не вдалося завантажити список автомобілів. Потрібна авторизація.");
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchCarsAndFavorites();
+
+//     // Підключення до WebSocket
+//     const socket = io(url);
+
+//     const handleNewCar = (newCar) => {
+//       setCars((prevCars) => {
+//         if (prevCars.some((car) => car._id === newCar._id)) return prevCars;
+//         return [newCar, ...prevCars];
+//       });
+//     };
+
+//     const handleCarDeleted = (deletedCarId) => {
+//       setCars((prevCars) => prevCars.filter((car) => car._id !== deletedCarId));
+//     };
+
+//     socket.on("new-car", handleNewCar);
+//     socket.on("car-deleted", handleCarDeleted);
+
+//     return () => {
+//       socket.off("new-car", handleNewCar);
+//       socket.off("car-deleted", handleCarDeleted);
+//       socket.disconnect();
+//     };
+//   }, [page, carName, carModel, year, limit]); // Викликати при зміні параметрів
+
+//   const handleFilterChange = (newFilterValue, filterType) => {
+//   if (filterType === "brand") setCarName(newFilterValue);
+//   if (filterType === "model") setCarModel(newFilterValue);
+//   if (filterType === "year") setYear(newFilterValue);
+
+//   setPage(1);  // ОНОВЛЮЄМО СТОРІНКУ НА ПЕРШУ ПРИ ЗМІНІ ФІЛЬТРА
+// };
+
+
+//   const handleDeleteCar = async (carId) => {
+//     const confirmDelete = window.confirm("Ви впевнені, що хочете видалити цей автомобіль?");
+//     if (!confirmDelete) return;
+
+//     try {
+//       await axios.delete(`${url}/cars/${carId}`, setHeaders());
+//       setCars((prevCars) => prevCars.filter((car) => car._id !== carId));
+//       alert("Автомобіль успішно видалено.");
+//     } catch (err) {
+//       console.error("Помилка видалення автомобіля:", err);
+//       alert("Не вдалося видалити автомобіль.");
+//     }
+//   };
+
+//   if (loading) return <p>Завантаження...</p>;
+//   if (error) return <p>{error}</p>;
+
+//   return (
+//     <>
+//       <SearchBar
+//         carName={carName}
+//         setCarName={setCarName}
+//         carModel={carModel}
+//         setCarModel={setCarModel}
+//         year={year}
+//         setYear={setYear}
+//         handleFilterChange={handleFilterChange} // Передаємо функцію у пропс
+//       />
+//       <div className="cars-container">
+//         <h1>Автомобілі</h1>
+//         <div className="car-list">
+//           {cars.length > 0 ? (
+//             cars.map((unit) => (
+//               <CarCard
+//                 key={unit._id}
+//                 car={unit}
+//                 isFavorite={favorites.includes(unit._id)}
+//                 isAdmin={isAdmin}
+//                 currentUser={currentUser}
+//                 onDelete={handleDeleteCar}
+//               />
+//             ))
+//           ) : (
+//             <p className="no-cars-message">Автомобілі не знайдено 😔</p>
+//           )}
+//         </div>
+        
+//         {cars.length > 0 && totalPages > 1 && (
+//           <PageNavigation
+//         page={page}
+//         totalPages={totalPages}
+//         setPage={setPage}
+//       />
+//         )}
+//       </div>
+//     </>
+//   );
+// };
+
+// export default CarList;
+
+
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import io from "socket.io-client";
-import "./CarList.css";
 import CarCard from "./CarCard";
-import SearchBar from "./SearchBar";
+import InlineSearchBar from "./InlineSearchBar";
 import { url, setHeaders } from "../slices/api";
 import PageNavigation from "./PageNavigation";
+import Triangle from "./Triangle"
 
 const CarList = () => {
   const [cars, setCars] = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [carName, setCarName] = useState(""); // для пошуку за маркою
-  const [carModel, setCarModel] = useState(""); // для пошуку за моделлю
-  const [year, setYear] = useState(""); // для пошуку за роком
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [page, setPage] = useState(1); // Поточна сторінка
-  const [limit] = useState(2); // Кількість авто на сторінку
-  const [totalPages, setTotalPages] = useState(1); // Загальна кількість сторінок
+  const [page, setPage] = useState(1);
+  const [limit] = useState(2);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const wrapperRef = useRef(null);
+
+  // 🔍 Фільтри
+  const [filters, setFilters] = useState({
+    brand: "",
+    model: "",
+    yearFrom: "",
+    yearTo: "",
+  });
+
+  const [filteredCount, setFilteredCount] = useState(0);
+  const [isSearchBarOpen, setIsSearchBarOpen] = useState(false); // Новий стан для пошукової панелі
+
+  const fetchCarsAndFavorites = async () => {
+    try {
+      const queryParams = new URLSearchParams({
+        brand: filters.brand,
+        model: filters.model,
+        yearFrom: filters.yearFrom,
+        yearTo: filters.yearTo,
+        page,
+        limit,
+      });
+
+      const [carResponse, favoriteResponse, userResponse] = await Promise.all([
+        axios.get(`${url}/cars/car-filtered-range?${queryParams.toString()}`),
+        axios.get(`${url}/favorites`, setHeaders()),
+        axios.get(`${url}/users/me`, setHeaders()),
+      ]);
+
+      setCars(carResponse.data.cars);
+      // setFilteredCount(carResponse.data.cars.length);
+      setFilteredCount(carResponse.data.totalFiltered);
+      setTotalPages(carResponse.data.totalPages);
+      setFavorites(favoriteResponse.data.map((fav) => fav.car?._id));
+      setIsAdmin(userResponse.data.isAdmin);
+      setCurrentUser(userResponse.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Помилка завантаження:", err);
+      setError("Не вдалося завантажити список автомобілів. Потрібна авторизація.");
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCarsAndFavorites = async () => {
-      try {
-         // Додаємо фільтри до запиту
-      const queryParams = new URLSearchParams({
-        brand: carName,
-        model: carModel,
-        year: year,
-        sort: "year", // або інше значення для сортування
-        page: page,
-        limit: limit,
-      });
-        const [carResponse, favoriteResponse, userResponse] = await Promise.all([
-          // axios.get(
-          //   `${url}/cars/car-filtered?brand=${carName}&model=${carModel}&year=${year}&page=${page}&limit=${limit}`
-          // ),
-          axios.get(`${url}/cars/car-filtered?${queryParams.toString()}`), // додаємо фільтри до запиту
-          axios.get(`${url}/favorites`, setHeaders()),
-          axios.get(`${url}/users/me`, setHeaders()), 
-        ]);
-
-        setCars(carResponse.data.cars);
-        setTotalPages(carResponse.data.totalPages);
-        setFavorites(favoriteResponse.data.map((fav) => fav.car?._id));
-        setIsAdmin(userResponse.data.isAdmin);
-        setCurrentUser(userResponse.data);
-        setLoading(false);
-      } catch (err) {
-        console.error("Помилка завантаження даних:", err);
-        setError("Не вдалося завантажити список автомобілів. Потрібна авторизація.");
-        setLoading(false);
-      }
-    };
-
     fetchCarsAndFavorites();
+  }, [filters, page]);
 
-    // Підключення до WebSocket
+  // 🧠 Реальний час
+  useEffect(() => {
     const socket = io(url);
 
     const handleNewCar = (newCar) => {
@@ -80,16 +246,27 @@ const CarList = () => {
       socket.off("car-deleted", handleCarDeleted);
       socket.disconnect();
     };
-  }, [page, carName, carModel, year, limit]); // Викликати при зміні параметрів
+  }, []);
 
-  const handleFilterChange = (newFilterValue, filterType) => {
-  if (filterType === "brand") setCarName(newFilterValue);
-  if (filterType === "model") setCarModel(newFilterValue);
-  if (filterType === "year") setYear(newFilterValue);
+  // Закриття при кліку поза пошуковим блоком
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target)
+      ) {
+        setIsSearchBarOpen(false);
+      }
+    };
 
-  setPage(1);  // ОНОВЛЮЄМО СТОРІНКУ НА ПЕРШУ ПРИ ЗМІНІ ФІЛЬТРА
-};
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    setPage(1);
+  };
 
   const handleDeleteCar = async (carId) => {
     const confirmDelete = window.confirm("Ви впевнені, що хочете видалити цей автомобіль?");
@@ -110,15 +287,18 @@ const CarList = () => {
 
   return (
     <>
-      <SearchBar
-        carName={carName}
-        setCarName={setCarName}
-        carModel={carModel}
-        setCarModel={setCarModel}
-        year={year}
-        setYear={setYear}
-        handleFilterChange={handleFilterChange} // Передаємо функцію у пропс
+      <div ref={wrapperRef} className="inline-search-wrapper">
+        <Triangle
+        isOpen={isSearchBarOpen} // <- стан обертання
+          onToggle={() => setIsSearchBarOpen((prev) => !prev)} // Перемикаємо стан
       />
+      {/* Умовно рендеримо InlineSearchBar */}
+      {isSearchBarOpen && (
+        <InlineSearchBar onFilterChange={handleFilterChange} count={filteredCount} />
+      )}
+      </div>
+      
+      {/* <InlineSearchBar onFilterChange={handleFilterChange} count={filteredCount} /> */}
       <div className="cars-container">
         <h1>Автомобілі</h1>
         <div className="car-list">
@@ -137,13 +317,8 @@ const CarList = () => {
             <p className="no-cars-message">Автомобілі не знайдено 😔</p>
           )}
         </div>
-        
         {cars.length > 0 && totalPages > 1 && (
-          <PageNavigation 
-        page={page} 
-        totalPages={totalPages} 
-        setPage={setPage} 
-      />
+          <PageNavigation page={page} totalPages={totalPages} setPage={setPage} />
         )}
       </div>
     </>
@@ -151,6 +326,7 @@ const CarList = () => {
 };
 
 export default CarList;
+
 
 
 // import React, { useEffect, useState } from "react";

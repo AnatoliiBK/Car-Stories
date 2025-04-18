@@ -70,7 +70,7 @@ router.get("/car-filtered-range", async (req, res) => {
       .skip((page - 1) * parseInt(limit))
       .limit(parseInt(limit));
 
-    res.status(200).json({ cars, totalPages });
+    res.status(200).json({ cars, totalPages, totalFiltered: totalCars });
   } catch (err) {
     res.status(500).json({
       message: "Помилка при фільтрації автомобілів",
