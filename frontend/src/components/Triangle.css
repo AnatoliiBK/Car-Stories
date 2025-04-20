@@ -15,14 +15,11 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 999;
+    animation: spin-once 1s ease-in-out;
 }
 
 .triangle-inl-toggle.rotated {
     transform: translateX(-50%) rotate(180deg);
-}
-
-.triangle-inl-toggle.spin-once {
-    animation: spin-once 1s ease-in-out;
 }
 
 @keyframes spin-once {
@@ -34,6 +31,12 @@
         transform: translateX(-50%) rotate(360deg);
     }
 }
+
+
+
+
+
+
 
 /* .triangle-inl-container {
     position: relative;

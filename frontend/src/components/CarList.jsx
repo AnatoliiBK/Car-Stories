@@ -90,7 +90,6 @@
 //   setPage(1);  // ОНОВЛЮЄМО СТОРІНКУ НА ПЕРШУ ПРИ ЗМІНІ ФІЛЬТРА
 // };
 
-
 //   const handleDeleteCar = async (carId) => {
 //     const confirmDelete = window.confirm("Ви впевнені, що хочете видалити цей автомобіль?");
 //     if (!confirmDelete) return;
@@ -137,7 +136,7 @@
 //             <p className="no-cars-message">Автомобілі не знайдено 😔</p>
 //           )}
 //         </div>
-        
+
 //         {cars.length > 0 && totalPages > 1 && (
 //           <PageNavigation
 //         page={page}
@@ -152,7 +151,6 @@
 
 // export default CarList;
 
-
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import io from "socket.io-client";
@@ -160,7 +158,9 @@ import CarCard from "./CarCard";
 import InlineSearchBar from "./InlineSearchBar";
 import { url, setHeaders } from "../slices/api";
 import PageNavigation from "./PageNavigation";
-import Triangle from "./Triangle"
+import Triangle from "./Triangle";
+import "./CarList.css";
+import { useTheme } from "../components/ThemeContext";
 
 const CarList = () => {
   const [cars, setCars] = useState([]);
@@ -169,12 +169,14 @@ const CarList = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { theme } = useTheme();
 
   const [page, setPage] = useState(1);
   const [limit] = useState(2);
   const [totalPages, setTotalPages] = useState(1);
 
   const wrapperRef = useRef(null);
+  const searchBarRef = useRef(null);
 
   // 🔍 Фільтри
   const [filters, setFilters] = useState({
@@ -183,6 +185,9 @@ const CarList = () => {
     yearFrom: "",
     yearTo: "",
   });
+
+  const areFiltersApplied =
+    filters.brand || filters.model || filters.yearFrom || filters.yearTo;
 
   const [filteredCount, setFilteredCount] = useState(0);
   const [isSearchBarOpen, setIsSearchBarOpen] = useState(false); // Новий стан для пошукової панелі
@@ -214,7 +219,9 @@ const CarList = () => {
       setLoading(false);
     } catch (err) {
       console.error("Помилка завантаження:", err);
-      setError("Не вдалося завантажити список автомобілів. Потрібна авторизація.");
+      setError(
+        "Не вдалося завантажити список автомобілів. Потрібна авторизація."
+      );
       setLoading(false);
     }
   };
@@ -222,6 +229,18 @@ const CarList = () => {
   useEffect(() => {
     fetchCarsAndFavorites();
   }, [filters, page]);
+
+  useEffect(() => {
+    if (searchBarRef.current) {
+      if (isSearchBarOpen) {
+        searchBarRef.current.classList.add("open");
+        searchBarRef.current.classList.remove("closed");
+      } else {
+        searchBarRef.current.classList.add("closed");
+        searchBarRef.current.classList.remove("open");
+      }
+    }
+  }, [isSearchBarOpen]);
 
   // 🧠 Реальний час
   useEffect(() => {
@@ -251,10 +270,7 @@ const CarList = () => {
   // Закриття при кліку поза пошуковим блоком
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target)
-      ) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsSearchBarOpen(false);
       }
     };
@@ -269,7 +285,9 @@ const CarList = () => {
   };
 
   const handleDeleteCar = async (carId) => {
-    const confirmDelete = window.confirm("Ви впевнені, що хочете видалити цей автомобіль?");
+    const confirmDelete = window.confirm(
+      "Ви впевнені, що хочете видалити цей автомобіль?"
+    );
     if (!confirmDelete) return;
 
     try {
@@ -289,15 +307,30 @@ const CarList = () => {
     <>
       <div ref={wrapperRef} className="inline-search-wrapper">
         <Triangle
-        isOpen={isSearchBarOpen} // <- стан обертання
+          isOpen={isSearchBarOpen} // <- стан обертання
           onToggle={() => setIsSearchBarOpen((prev) => !prev)} // Перемикаємо стан
-      />
-      {/* Умовно рендеримо InlineSearchBar */}
-      {isSearchBarOpen && (
+        />
+        {!isSearchBarOpen && areFiltersApplied && (
+          <div className={`filter-summary ${theme}`}>
+            <span className="counter-value">({filteredCount})</span>, згідно заповнених даних
+          </div>
+        )}
+        {/* Умовно рендеримо InlineSearchBar */}
+        {/* {isSearchBarOpen && (
         <InlineSearchBar onFilterChange={handleFilterChange} count={filteredCount} />
-      )}
+      )} */}
+        {/* <InlineSearchBar ref={searchBarRef} onFilterChange={handleFilterChange} count={filteredCount} /> */}
+        <InlineSearchBar
+          ref={searchBarRef}
+          onFilterChange={handleFilterChange}
+          count={filteredCount}
+          brand={filters.brand}
+          model={filters.model}
+          yearFrom={filters.yearFrom}
+          yearTo={filters.yearTo}
+        />
       </div>
-      
+
       {/* <InlineSearchBar onFilterChange={handleFilterChange} count={filteredCount} /> */}
       <div className="cars-container">
         <h1>Автомобілі</h1>
@@ -318,7 +351,11 @@ const CarList = () => {
           )}
         </div>
         {cars.length > 0 && totalPages > 1 && (
-          <PageNavigation page={page} totalPages={totalPages} setPage={setPage} />
+          <PageNavigation
+            page={page}
+            totalPages={totalPages}
+            setPage={setPage}
+          />
         )}
       </div>
     </>
@@ -326,8 +363,6 @@ const CarList = () => {
 };
 
 export default CarList;
-
-
 
 // import React, { useEffect, useState } from "react";
 // import axios from "axios";
@@ -348,8 +383,6 @@ export default CarList;
 //   const [error, setError] = useState("");
 //   const [isAdmin, setIsAdmin] = useState(false); // 26 01 25
 //   const [currentUser, setCurrentUser] = useState(null);
-
-  
 
 //   useEffect(() => {
 //     const fetchCarsAndFavorites = async () => {
@@ -456,7 +489,6 @@ export default CarList;
 //     alert("Не вдалося видалити автомобіль. Перевірте з'єднання або дані.");
 //   }
 // };
-
 
 //   if (loading) return <p>Завантаження...</p>;
 //   if (error) return <p>{error}</p>;
@@ -699,40 +731,38 @@ export default CarList;
 
 // export default CarList;
 
+// const handleDeleteCar = async (carId) => {
+//   const confirmDelete = window.confirm(
+//   "Ви впевнені, що хочете видалити цей автомобіль?"
+// );
 
+// if (!confirmDelete) return; // Якщо користувач скасовує, нічого не робимо
+//   try {
+//     // // Видалення автомобіля з колекції `cars`
+//     // await axios.delete(`${url}/cars/${carId}`, setHeaders());
 
- // const handleDeleteCar = async (carId) => {
-  //   const confirmDelete = window.confirm(
-  //   "Ви впевнені, що хочете видалити цей автомобіль?"
-  // );
+//     // // Видалення автомобіля з колекції `favorites`
+//     // await axios.delete(`${url}/favorites/car/${carId}`, setHeaders());
+//      // Спочатку видаляємо цей автомобіль з улюблених
+//   await axios.delete(`${url}/favorites/${carId}`, setHeaders());
 
-  // if (!confirmDelete) return; // Якщо користувач скасовує, нічого не робимо
-  //   try {
-  //     // // Видалення автомобіля з колекції `cars`
-  //     // await axios.delete(`${url}/cars/${carId}`, setHeaders());
+//   // Потім видаляємо сам автомобіль з колекції cars
+//   await axios.delete(`${url}/cars/${carId}`, setHeaders());
 
-  //     // // Видалення автомобіля з колекції `favorites`
-  //     // await axios.delete(`${url}/favorites/car/${carId}`, setHeaders());
-  //      // Спочатку видаляємо цей автомобіль з улюблених
-  //   await axios.delete(`${url}/favorites/${carId}`, setHeaders());
+//     // Оновлення стану `Cars`
+//     setCars((prevCars) => prevCars.filter((car) => car._id !== carId));
+//     alert("Автомобіль успішно видалено.");
 
-  //   // Потім видаляємо сам автомобіль з колекції cars
-  //   await axios.delete(`${url}/cars/${carId}`, setHeaders());
+//   //   // Оновлення стану `Favorites` (якщо доступний setFavorites)
+//   // if (typeof setFavorites === "function") {
+//   //   setFavorites((prevFavorites) =>
+//   //     prevFavorites.filter((fav) => fav.car._id !== carId)
+//   //   );
+//   //   }
 
-  //     // Оновлення стану `Cars`
-  //     setCars((prevCars) => prevCars.filter((car) => car._id !== carId));
-  //     alert("Автомобіль успішно видалено.");
-
-  //   //   // Оновлення стану `Favorites` (якщо доступний setFavorites)
-  //   // if (typeof setFavorites === "function") {
-  //   //   setFavorites((prevFavorites) =>
-  //   //     prevFavorites.filter((fav) => fav.car._id !== carId)
-  //   //   );
-  //   //   }
-
-  //     alert("Автомобіль успішно видалено.");
-  //   } catch (err) {
-  //     console.error("Помилка видалення автомобіля:", err);
-  //     alert("Не вдалося видалити автомобіль.");
-  //   }
-  // };
+//     alert("Автомобіль успішно видалено.");
+//   } catch (err) {
+//     console.error("Помилка видалення автомобіля:", err);
+//     alert("Не вдалося видалити автомобіль.");
+//   }
+// };

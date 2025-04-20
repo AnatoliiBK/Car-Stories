@@ -1,3 +1,142 @@
+.inline-search-bar {
+  transition: max-height 0.5s ease, opacity 0.5s ease, transform 0.5s ease;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 25px;
+  position: relative;
+  transform: translateY(-10px);
+}
+
+.inline-search-bar.open {
+  max-height: 500px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Клас .closed видалено, оскільки базовий стан .inline-search-bar уже містить стилі 
+для закритого стану. */
+/* .inline-search-bar.closed {
+  max-height: 0;
+  opacity: 0;
+} */
+
+.inline-search-bar input {
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  min-width: 150px;
+}
+
+.search-input.light {
+  background-color: #fff;
+  color: #000;
+}
+
+.search-input.dark {
+  background-color: #333;
+  color: #fff;
+}
+
+.clear-icon-wrapper {
+  cursor: pointer;
+  margin-left: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+.clear-icon-wrapper.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.animated-close-icon {
+  width: 30px;
+  height: 30px;
+  fill: #007bff;
+  transition: transform 0.2s ease-in-out;
+}
+
+.clear-icon-wrapper:hover .animated-close-icon {
+  transform: scale(1.2);
+}
+
+.inline-search-bar button {
+  padding: 8px 14px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.inline-search-bar button:hover {
+  background-color: #0056b3;
+}
+
+.inline-search-bar .result-counter {
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.count-int {
+  color: #007bff;
+  font-size: 22px;
+}
+
+.clear-text {
+  display: none;
+  color: #007bff;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .inline-search-bar button {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 620px) {
+  .inline-search-bar {
+    flex-direction: column;
+    .animated-close-icon {
+      display: none;
+    }
+
+    .result-counter {
+      margin: 0;
+    }
+
+    .clear-icon-wrapper {
+      margin: 0;
+    }
+
+    .clear-text {
+      display: inline-block;
+    }
+  }
+}
+
+@media (max-width: 425px) {
+  .inline-search-bar {
+    flex-direction: column;
+  }
+
+  .inline-search-bar .result-counter {
+    margin: 0;
+  }
+}
+
 /* .triangle-toggle {
     width: 0;
     height: 0;
@@ -37,126 +176,3 @@
     margin-top: 0.5rem;
     font-weight: bold;
 } */
-
-.inline-search-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-    margin-top: 25px;
-}
-
-.inline-search-bar input {
-    padding: 8px 12px;
-    font-size: 16px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    min-width: 150px;
-}
-
-.search-input.light {
-    background-color: #fff;
-    color: #000;
-}
-
-.search-input.dark {
-    background-color: #333;
-    color: #fff;
-}
-
-.clear-icon-wrapper {
-    cursor: pointer;
-    margin-left: 10px;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-    pointer-events: none;
-}
-
-.clear-icon-wrapper.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.animated-close-icon {
-    width: 30px;
-    height: 30px;
-    /* fill: var(--text-color); */
-    fill: #007bff;
-    transition: transform 0.2s ease-in-out;
-}
-
-.clear-icon-wrapper:hover .animated-close-icon {
-    transform: scale(1.1);
-}
-
-.inline-search-bar button {
-    padding: 8px 14px;
-    background-color: #007bff;
-    border: none;
-    color: white;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.inline-search-bar button:hover {
-    background-color: #0056b3;
-}
-
-.inline-search-bar .count {
-    font-size: 16px;
-    font-weight: bold;
-    margin-left: 10px;
-    color: #333;
-}
-
-/* ✅ Адаптивність */
-@media (max-width: 768px) {
-    .inline-search-bar input {
-        min-width: 120px;
-        font-size: 14px;
-    }
-
-    .inline-search-bar button {
-        font-size: 13px;
-        padding: 7px 10px;
-    }
-}
-
-@media (max-width: 425px) {
-    .inline-search-bar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .inline-search-bar input,
-    .inline-search-bar button {
-        width: 100%;
-        font-size: 14px;
-    }
-
-    .inline-search-bar .count {
-        text-align: center;
-        margin: 10px 0;
-    }
-}
-
-@media (max-width: 375px) {
-
-    .inline-search-bar input,
-    .inline-search-bar button {
-        font-size: 13px;
-        padding: 7px 10px;
-    }
-}
-
-@media (max-width: 320px) {
-
-    .inline-search-bar input,
-    .inline-search-bar button {
-        font-size: 12px;
-        padding: 6px 8px;
-    }
-}
