@@ -228,6 +228,7 @@ exports.getCarSpecs = async (req, res) => {
 //   }
 // };
 
+// Функція для отримання даних з GCS і NHTSA
 exports.getCarSpecsFromGCS = async (req, res) => {
   try {
     const { carId, make, model, year, vin } = req.body;
