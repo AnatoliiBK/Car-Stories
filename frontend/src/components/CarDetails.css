@@ -9,6 +9,10 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.specs-button-wrapper {
+  margin-bottom: 1rem;
+}
+
 .car-details.light {
 background-color: #fff;
     h1,

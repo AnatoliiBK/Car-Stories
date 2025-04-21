@@ -1,6 +1,7 @@
 const CarSpecs = require("../models/CarSpecsSchema");
 const { aiSearchFunction } = require("../utils/aiSearch");
 const bingSearchFunction = require("../utils/bingSearch");
+const { msnSearchFunction } = require("../utils/msnSearchCarSpecs");
 const { googleSearchCarSpecs } = require("../utils/googleSearch");
 const { nhtsaSearchCarSpecs } = require("../utils/nhtsaSearch");
 const axios = require("axios");
@@ -60,6 +61,87 @@ const parseCarSpecs = async (url) => {
   } catch (error) {
     console.error("❌ Помилка парсингу:", error.message);
     return null;
+  }
+};
+
+// exports.msnSearchCarSpecs = async (req, res) => {
+//   const { make, model, year, carId } = req.body;
+
+//   try {
+//     const msnResults = await msnSearchFunction(make, model, year);
+
+//     if (msnResults && msnResults.length > 0) {
+//       const carSpecs = new CarSpecs({
+//         carId,
+//         source: "msn",
+//         usefulLinks: msnResults.map((result) => ({
+//           title: result.title,
+//           url: result.url,
+//         })),
+//         additionalSpecs: {
+//           description: `Дані отримані через MSN (site:autos.msn.com) для ${make} ${model} ${year}`,
+//         },
+//       });
+
+//       await carSpecs.save();
+//       res
+//         .status(200)
+//         .json({ message: "MSN-результати успішно збережені!", carSpecs });
+//     } else {
+//       res
+//         .status(404)
+//         .json({ message: "MSN не знайшов характеристик для цього авто." });
+//     }
+//   } catch (error) {
+//     console.error("Помилка MSN-пошуку:", error);
+//     res.status(500).json({ message: "Сталася помилка при пошуку через MSN." });
+//   }
+// };
+
+exports.msnSearchCarSpecs = async (req, res) => {
+  const { make, model, year, carId } = req.body;
+
+  try {
+    const msnResults = await msnSearchFunction(make, model, year);
+
+    if (!msnResults || msnResults.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "MSN не знайшов характеристик для цього авто." });
+    }
+
+    // 🔍 Перевірка, чи вже існують характеристики з MSN для цього авто
+    const existing = await CarSpecs.findOne({ carId, source: "msn" });
+
+    if (existing) {
+      return res.status(409).json({
+        message: "Характеристики з MSN вже збережені для цього авто.",
+        existingSpecs: existing,
+      });
+    }
+
+    // ✅ Якщо немає — зберігаємо нові
+    const carSpecs = new CarSpecs({
+      carId,
+      source: "msn",
+      usefulLinks: msnResults.map((result) => ({
+        title: result.title,
+        url: result.url,
+      })),
+      additionalSpecs: {
+        description: `Дані отримані через MSN (site:autos.msn.com) для ${make} ${model} ${year}`,
+      },
+    });
+
+    await carSpecs.save();
+
+    res.status(200).json({
+      message: "MSN-результати успішно збережені!",
+      carSpecs,
+    });
+  } catch (error) {
+    console.error("Помилка MSN-пошуку:", error);
+    res.status(500).json({ message: "Сталася помилка при пошуку через MSN." });
   }
 };
 

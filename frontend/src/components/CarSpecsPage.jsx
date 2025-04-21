@@ -25,7 +25,7 @@ const CarSpecsPage = () => {
   }, [carId]);
 
   if (!specs) {
-    return <p>Завантаження характеристик...</p>;
+    return <p className="no-specs">Характеристики відсутні</p>;
   }
 
   return (

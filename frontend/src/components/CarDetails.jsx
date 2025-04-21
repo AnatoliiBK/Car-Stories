@@ -116,6 +116,15 @@ const CarDetails = () => {
       <p>
         <strong>Опис:</strong> {car.description}
       </p>
+      <div className="specs-button-wrapper">
+      <button
+          className={`specs-button ${theme}`}
+          onClick={() => navigate(`/car-specs/${car._id}`)}
+        >
+          Дещо більше
+        </button>
+      </div> 
+      
       <div className={`add-specs ${theme}`} onClick={() => setShowModal(true)}>
         Додати характеристики
       </div>

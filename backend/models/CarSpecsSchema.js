@@ -11,7 +11,16 @@ const CarSpecsSchema = new mongoose.Schema(
     // Джерело даних (додали nhtsa)
     source: {
       type: String,
-      enum: ["manual", "auto-ria", "AI", "bing", "gcs", "algolia", "nhtsa"],
+      enum: [
+        "manual",
+        "auto-ria",
+        "AI",
+        "bing",
+        "msn",
+        "gcs",
+        "algolia",
+        "nhtsa",
+      ],
       required: true,
     },
 

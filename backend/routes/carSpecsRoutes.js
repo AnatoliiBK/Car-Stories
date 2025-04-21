@@ -2,7 +2,7 @@ const express = require("express");
 const {
   addCarSpecs,
   getCarSpecs,
-  // getCarSpecsByCarId,
+  msnSearchCarSpecs,
   getCarSpecsFromGCS,
   scrapeCarSpecs,
   getAutoRiaSpecs,
@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.post("/", addCarSpecs); // Додавання характеристик в базу
 router.post("/google-search", getCarSpecsFromGCS);
-
+router.post("/msn-search", msnSearchCarSpecs);
 router.post("/bing-search", bingSearchCarSpecs);
 router.post("/ai-search", aiSearchCarSpecs);
 

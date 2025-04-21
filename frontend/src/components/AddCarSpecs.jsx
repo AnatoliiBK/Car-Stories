@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { url } from "../slices/api";
+import "./AddCarSpecs.css"
+import { useTheme } from "../components/ThemeContext";
 
 const AddCarSpecs = () => {
   const { carId } = useParams();
   const navigate = useNavigate();
   const [fuelType, setFuelType] = useState("бензин");
   const [specs, setSpecs] = useState({});
+  const { theme } = useTheme();
 
   const handleChange = (e) => {
     setSpecs({ ...specs, [e.target.name]: e.target.value });
@@ -24,9 +27,9 @@ const AddCarSpecs = () => {
   };
 
   return (
-    <div>
+    <div className="add-specs-container">
       <h2>Додати характеристики авто</h2>
-      <form onSubmit={handleSubmit}>
+      <form className={`specs-form ${theme}`} onSubmit={handleSubmit}>
         <label>Тип двигуна:</label>
         <select value={fuelType} onChange={(e) => setFuelType(e.target.value)}>
           <option value="бензин">Бензин</option>
@@ -38,7 +41,7 @@ const AddCarSpecs = () => {
         {fuelType === "бензин" || fuelType === "дизель" ? (
           <>
             <label>Об'єм двигуна (л):</label>
-            <input type="number" name="engineDisplacement" onChange={handleChange} />
+            <input type="number" name="engineDisplacement"  step="0.01" onChange={handleChange} />
 
             <label>Потужність (к.с.):</label>
             <input type="number" name="horsepower" onChange={handleChange} />
