@@ -79,6 +79,147 @@ router.get("/car-filtered-range", async (req, res) => {
   }
 });
 
+router.get("/car-filtered-classic", async (req, res) => {
+  try {
+    const {
+      brand,
+      model,
+      yearFrom,
+      yearTo,
+      sort,
+      page = 1,
+      limit = 10,
+    } = req.query;
+    console.log("Отримано параметри для класичних авто:", { yearFrom, yearTo });
+
+    const filter = { approved: true, year: { $lt: 1987 } }; // Примусово обмежуємо рік до 1987
+
+    if (brand) filter.brand = new RegExp(brand, "i");
+    if (model) filter.name = new RegExp(model, "i");
+
+    if (yearFrom || yearTo) {
+      const yearFilter = filter.year || {};
+
+      if (yearFrom) {
+        const fromNum = parseInt(yearFrom, 10);
+        if (!isNaN(fromNum)) {
+          const length = yearFrom.length;
+          const fromRange = fromNum * Math.pow(10, 4 - length);
+          yearFilter.$gte = fromRange;
+        }
+      }
+
+      if (yearTo) {
+        const toNum = parseInt(yearTo, 10);
+        if (!isNaN(toNum) && toNum <= 1986) {
+          // Ігноруємо yearTo > 1986
+          const length = yearTo.length;
+          const toRange = (toNum + 1) * Math.pow(10, 4 - length) - 1;
+          yearFilter.$lte = toRange;
+        }
+      }
+
+      if (Object.keys(yearFilter).length > 0) {
+        filter.year = { ...yearFilter, $lt: 1987 }; // Зберігаємо обмеження < 1987
+      }
+    }
+
+    const sortOptions = {};
+    if (sort === "name") sortOptions.name = 1;
+    if (sort === "year") sortOptions.year = -1;
+    sortOptions._id = 1;
+
+    const totalCars = await Car.countDocuments(filter);
+    const totalPages = Math.ceil(totalCars / limit);
+
+    const cars = await Car.find(filter)
+      .populate("createdBy", "name avatar")
+      .sort(sortOptions)
+      .skip((page - 1) * parseInt(limit))
+      .limit(parseInt(limit));
+
+    res.status(200).json({ cars, totalPages, totalFiltered: totalCars });
+  } catch (err) {
+    res.status(500).json({
+      message: "Помилка при фільтрації класичних автомобілів",
+      error: err.message,
+    });
+  }
+});
+
+// модифікований для всіх і для класичнх
+// router.get("/car-filtered-range", async (req, res) => {
+//   try {
+//     const {
+//       brand,
+//       model,
+//       yearFrom,
+//       yearTo,
+//       sort,
+//       page = 1,
+//       limit = 10,
+//       classic, // Додаємо параметр classic
+//     } = req.query;
+//     console.log("Отримано параметри:", { yearFrom, yearTo, classic });
+
+//     const filter = { approved: true };
+
+//     if (brand) filter.brand = new RegExp(brand, "i");
+//     if (model) filter.name = new RegExp(model, "i");
+
+//     if (yearFrom || yearTo || classic === "true") {
+//       const yearFilter = {};
+
+//       if (yearFrom) {
+//         const fromNum = parseInt(yearFrom, 10);
+//         if (!isNaN(fromNum)) {
+//           const length = yearFrom.length;
+//           const fromRange = fromNum * Math.pow(10, 4 - length);
+//           yearFilter.$gte = fromRange;
+//         }
+//       }
+
+//       if (classic === "true") {
+//         // Для класичних автомобілів примусово обмежуємо рік до 1986
+//         yearFilter.$lt = 1987;
+//       } else if (yearTo) {
+//         // Звичайна логіка для yearTo, якщо classic не вказано
+//         const toNum = parseInt(yearTo, 10);
+//         if (!isNaN(toNum)) {
+//           const length = yearTo.length;
+//           const toRange = (toNum + 1) * Math.pow(10, 4 - length) - 1;
+//           yearFilter.$lte = toRange;
+//         }
+//       }
+
+//       if (Object.keys(yearFilter).length > 0) {
+//         filter.year = yearFilter;
+//       }
+//     }
+
+//     const sortOptions = {};
+//     if (sort === "name") sortOptions.name = 1;
+//     if (sort === "year") sortOptions.year = -1;
+//     sortOptions._id = 1;
+
+//     const totalCars = await Car.countDocuments(filter);
+//     const totalPages = Math.ceil(totalCars / limit);
+
+//     const cars = await Car.find(filter)
+//       .populate("createdBy", "name avatar")
+//       .sort(sortOptions)
+//       .skip((page - 1) * parseInt(limit))
+//       .limit(parseInt(limit));
+
+//     res.status(200).json({ cars, totalPages, totalFiltered: totalCars });
+//   } catch (err) {
+//     res.status(500).json({
+//       message: "Помилка при фільтрації автомобілів",
+//       error: err.message,
+//     });
+//   }
+// });
+
 router.get("/car-filtered", async (req, res) => {
   try {
     const { brand, model, year, sort, page = 1, limit = 10 } = req.query;
