@@ -46,6 +46,8 @@ const NavBar = () => {
   const [isNameEditOpen, setIsNameEditOpen] = useState(false); // Стан для форми імені
   const [newName, setNewName] = useState(auth.name); // Стан для нового імені
 
+  const [isLoading, setIsLoading] = useState(true);
+
   console.log("USER AVATAR : ", userAvatar);
 
   const menuRef = useRef(null);
@@ -53,15 +55,15 @@ const NavBar = () => {
   const imageRef = useRef(null);
 
   // 🔹 Функція для отримання улюблених авто
-    const fetchFavoritesCount = async () => {
-      try {
-        const response = await axios.get(`${url}/favorites`, setHeaders());
-        setFavoritesCount(response.data.length);
-      } catch (err) {
-        console.error("Помилка завантаження улюблених авто:", err);
-      }
-    };
-  
+  const fetchFavoritesCount = async () => {
+    try {
+      const response = await axios.get(`${url}/favorites`, setHeaders());
+      setFavoritesCount(response.data.length);
+    } catch (err) {
+      console.error("Помилка завантаження улюблених авто:", err);
+    }
+  };
+
   // Виклик fetchFavoritesCount при зміні auth._id (тобто, коли входить новий користувач)
   useEffect(() => {
     if (auth._id) {
@@ -70,7 +72,6 @@ const NavBar = () => {
       setFavoritesCount(0);
     }
   }, [auth._id]);
-
 
   // Усунення перевірки cartTotalQuantity > 0: Перевірка наявності товарів у кошику
   // перед викликом fetchCart є зайвою, адже ці функції повинні завантажувати дані
@@ -116,6 +117,8 @@ const NavBar = () => {
         setPendingCount(response.data.length);
       } catch (error) {
         console.error("Помилка отримання очікуючих авто:", error.message);
+      } finally {
+        setIsLoading(false); // Завантаження завершено
       }
     };
 
@@ -264,6 +267,10 @@ const NavBar = () => {
         toast.error("Failed to update name.");
       });
   };
+
+  if (isLoading) {
+  return <div>Завантаження...</div>; // Показуємо лоадер, поки дані не отримані
+}
 
   return (
     <nav className="nav-bar">

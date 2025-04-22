@@ -3,6 +3,8 @@ import { NavLink, Outlet } from "react-router-dom";
 import styled from "styled-components";
 import { FaUsers, FaStore, FaClipboard, FaTachometerAlt, FaCar } from "react-icons/fa"
 import { useEffect, useState } from "react";
+import { useTheme } from "../../components/ThemeContext";
+import "./Dashboard.css"
 
 const useWindowWidth = () => {
   const [width, setWidth] = useState(window.innerWidth);
@@ -19,138 +21,161 @@ const useWindowWidth = () => {
 
 const Dashboard = () => {
   const auth = useSelector(state => state.auth)
+  const { theme } = useTheme();
 
   const width = useWindowWidth();
-  const isSmallScreen = width <= 650;
+  const isSmallScreen = width <= 1301;
 
   if (!auth.isAdmin) return <p>Acces Denied</p>
   
   return (
-    <StyledDashboard>
-      <SideNav>
-        <h3>{isSmallScreen ? 'Links' : 'Quick Links'}</h3>
-        <NavLink
+    <div className="dashboard">
+      <div className="side-nav">
+        {/* <h3>{isSmallScreen ? 'Links' : 'Quick Links'}</h3> */}
+        
+          <NavLink
           className={({ isActive }) =>
-            isActive ? "link-active" : "link-inactive"
+            isActive ? "link-active" : `link-inactive ${theme}`
           }
           to="/admin/pending"
         >
-          <FaCar /> Recent Cars
+          <FaCar /> <span>Recent Cars</span> 
         </NavLink>
         <NavLink
           className={({ isActive }) =>
-            isActive ? "link-active" : "link-inactive"
+            isActive ? "link-active" : `link-inactive ${theme}`
           }
           to="/admin/summary"
         >
-          <FaTachometerAlt /> Summary
+          <FaTachometerAlt /> <span>Summary</span> 
         </NavLink>
         <NavLink
           className={({ isActive }) =>
-            isActive ? "link-active" : "link-inactive"
+            isActive ? "link-active" : `link-inactive ${theme}`
           }
           to="/admin/all-cars"
         >
-          <FaStore /> All Cars
+          <FaStore /> <span>All Cars</span> 
         </NavLink>
         <NavLink
           className={({ isActive }) =>
-            isActive ? "link-active" : "link-inactive"
+            isActive ? "link-active" : `link-inactive ${theme}`
           }
           to="/admin/orders"
         >
-          <FaClipboard /> Orders
+          <FaClipboard /> <span>Orders</span> 
         </NavLink>
         <NavLink
           className={({ isActive }) =>
-            isActive ? "link-active" : "link-inactive"
+            isActive ? "link-active" : `link-inactive ${theme}`
           }
           to="/admin/users"
         >
-          <FaUsers /> Users
+          <FaUsers /> <span>Users</span> 
         </NavLink>
-      </SideNav>
-      <Content>
+        
+        
+      </div>
+      <div className="dashboard-content">
         <Outlet />
-      </Content>
-    </StyledDashboard>
+      </div>
+    </div>
   );
 };
 
 export default Dashboard;
 
-const StyledDashboard = styled.div`
-  display: flex;
-  height: 100vh;
-  @media (max-width: 425.98px) {
-    flex-direction: column;
-  }
-`;
+// const StyledDashboard = styled.div`
+//   display: flex;
+//   height: 100vh;
+//   @media (max-width: 680px) {
+//     flex-direction: column;
+//   }
+// `;
 
-// Контейнер для бічної панелі
-const SideNav = styled.div`
-  border-right: 1px solid grey;
-  height: calc(100vh - 70px);
-  //position: fixed;
-  /* overflow-y: auto; */
-  width: 20%;
-  display: flex;
-  flex-direction: column;
-  padding: 2rem;
-  @media(max-width: 858px) {
-    padding-right: 1rem;
-    padding-left: 1rem;
-    /* align-items: center; */
-  }
-  @media(max-width: 768px) {
-    padding-right: 0.7rem;
-    padding-left: 0.7rem;
-  }
-  @media (max-width: 425.98px) {
-    border-right: none;
-    border-bottom: 1px solid grey;
-    height: auto;
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-  }
+// // Контейнер для бічної панелі
+// const SideNav = styled.div`
+//   border-right: 1px solid grey;
+//   height: calc(100vh - 70px);
+//   //position: fixed;
+//   /* overflow-y: auto; */
+//   width: 20%;
+//   display: flex;
+//   flex-direction: column;
+//   padding: 2rem;
+//   @media(max-width: 858px) {
+//     padding-right: 1rem;
+//     padding-left: 1rem;
+//     /* align-items: center; */
+//   }
+//   @media(max-width: 768px) {
+//     padding-right: 0.7rem;
+//     padding-left: 0.7rem;
+//   }
 
-  h3 {
-    margin: 0 0 1rem 0;
-    padding: 0;
-    text-transform: uppercase;
-    font-size: 17px;
-  }
+//   @media(max-width: 680px) {
+//     width: 100%;
+//     flex-direction: row;
+//   }
 
-  a {
-    text-decoration: none;
-    margin-bottom: 1rem;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    font-weight: 700;
 
-    svg {
-      margin-right: 0.5rem;
-      font-size: 18px;
-      @media (max-width: 650.98px) {
-        display: none;
-      }
-    }
-  }
-`;
+//   /* @media (max-width: 541px) {
+//     border-right: none;
+//     border-bottom: 1px solid grey;
+//     height: auto;
+//     width: 100%;
+//     flex-direction: row;
+//     align-items: center;
+//     justify-content: space-between;
+//     padding: 1rem;
+//   }
 
-// Контейнер для статистики і для списків продуктів, замовлень, користувачів
-const Content = styled.div`
-  /* margin-left: 200px; */
-  padding: 2rem 0;
-  width: 80%;
-  @media (max-width: 988px) {
-    padding-right: 2px;
-  }
-  @media(max-width: 425.98px) {
-    width: 100%;
-  }
-`;
+//   @media (max-width: 425px) {
+//     flex-wrap: wrap;
+//   } */
+
+//   h3 {
+//     margin: 0 0 1rem 0;
+//     padding: 0;
+//     text-transform: uppercase;
+//     font-size: 17px;
+//   }
+
+//   a {
+//     text-decoration: none;
+//     margin-bottom: 1rem;
+//     font-size: 14px;
+//     display: flex;
+//     align-items: center;
+//     font-weight: 700;
+
+//     svg {
+//       margin-right: 0.5rem;
+//       font-size: 18px;
+//       @media (max-width: 680.98px) {
+//         display: none;
+//       }
+//     }
+//   }
+
+//   .link-inactive.dark {
+//   color: white;
+// }
+
+// .link-inactive.light {
+//   color: black;
+// }
+// `;
+
+// // Контейнер для статистики і для списків продуктів, замовлень, користувачів
+// const Content = styled.div`
+//   /* margin-left: 200px; */
+//   padding: 2rem 0;
+//   width: 80%;
+//   @media (max-width: 988px) {
+//     padding-right: 2px;
+//   }
+//   @media(max-width: 680px) {
+//     width: 100%;
+//   }
+// `;

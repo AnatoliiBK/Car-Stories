@@ -77,6 +77,7 @@ body.dark-theme {
 }
 .nav-bar h2 {
   font-size: 40px;
+  margin-bottom: 0;
 }
 /* @media (max-width: 425) {
   .nav-bar h2 {
@@ -439,9 +440,9 @@ body.dark-theme {
   padding-left: 5px;
 }
 
-.link-inactive {
+/* .link-inactive {
   color: rgb(97, 97, 97);
-}
+} */
 
 /* Responsive */
 
