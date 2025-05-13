@@ -41,6 +41,7 @@ import ViewedCars from "./components/ViewedCars";
 import CarSpecsPage from "./components/CarSpecsPage";
 import AddCarSpecs from "./components/AddCarSpecs";
 import EditCarPage from "./components/EditCarPage";
+import EditCarSpecsPage from "./components/EditCarSpecsPage";
 import MyCarsList from "./components/MyCarsList";
 import CarSearchBar from "./components/CarSearchBar";
 import FilteredCarsPage from "./components/FilteredCarsPage";
@@ -98,6 +99,10 @@ const AppContent = () => {
                 <Route path="/cars/:id" element={<CarDetails />} />
                 <Route path="/car-specs/:carId" element={<CarSpecsPage />} />
                 <Route path="/add-car-specs/:carId" element={<AddCarSpecs />} />
+                <Route
+                  path="/car-specs/edit/:carId"
+                  element={<EditCarSpecsPage />}
+                />
 
                 <Route path="/cars/edit/:id" element={<EditCarPage />} />
 

@@ -13,6 +13,8 @@ const socket = io(url); // Підключаємо WebSocket клієнт
 const CarDetails = () => {
   const { id } = useParams(); // Отримуємо ID автомобіля з URL
   const [car, setCar] = useState(null);
+  const [carSpecs, setCarSpecs] = useState(null);
+  const [specsNotFound, setSpecsNotFound] = useState(false); // 🆕
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isFavorite, setIsFavorite] = useState(false); // Для відображення статусу
@@ -25,9 +27,22 @@ const CarDetails = () => {
   useEffect(() => {
     const fetchCarDetails = async () => {
       try {
-        const response = await axios.get(`${url}/cars/${id}`); // API для завантаження деталей
-        console.log("CAR IN DETAILS", response.data);
-        setCar(response.data);
+        const carResponse = await axios.get(`${url}/cars/${id}`); // API для завантаження деталей
+        console.log("CAR IN DETAILS", carResponse.data);
+        setCar(carResponse.data);
+
+        try {
+          const specsResponse = await axios.get(`${url}/car-specs/${id}`);
+          console.log("CAR SPECS IN DETAILS", specsResponse.data);
+          setCarSpecs(specsResponse.data);
+          setSpecsNotFound(false);
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            setSpecsNotFound(true); // 🟡 Специфікацій немає — не критично
+          } else {
+            console.error("Error fetching car specs:", error);
+          }
+        }
 
         // Перевіряємо, чи є автомобіль у списку улюблених
         const favoriteResponse = await axios.get(
@@ -86,7 +101,6 @@ const CarDetails = () => {
     }
   };
 
-
   // Функція для повернення назад
   const handleBack = () => {
     navigate(-1);
@@ -116,28 +130,53 @@ const CarDetails = () => {
       <p>
         <strong>Опис:</strong> {car.description}
       </p>
-      <div className="specs-button-wrapper">
+      {/* <div className="specs-button-wrapper">
       <button
           className={`specs-button ${theme}`}
           onClick={() => navigate(`/car-specs/${car._id}`)}
         >
           Дещо більше
         </button>
-      </div> 
-      
-      <div className={`add-specs ${theme}`} onClick={() => setShowModal(true)}>
-        Додати характеристики
+      </div>  */}
+      <div
+        className={`specs-button-wrapper ${theme}`}
+        onClick={() =>
+          carSpecs ? navigate(`/car-specs/${car._id}`) : setShowModal(true)
+        }
+      >
+        <button className={`specs-button ${theme}`}>
+          {carSpecs ? "Дещо більше" : "Додати характеристики"}
+        </button>
       </div>
+
+      {/* {carSpecs && (
+        <div className="specs-button-wrapper">
+          <button
+            className={`specs-button ${theme}`}
+            onClick={() => navigate(`/car-specs/${car._id}`)}
+          >
+            Дещо більше
+          </button>
+        </div>
+      )}
+
+      {!carSpecs && (
+        <div
+          className={`add-specs ${theme}`}
+          onClick={() => setShowModal(true)}
+        >
+          Додати характеристики
+        </div>
+      )} */}
 
       {/* Модальне вікно */}
       {showModal && (
-        
-        <AddCarSpecsModal 
-  show={showModal} 
-  onClose={() => setShowModal(false)} 
-  theme={theme} 
-  car={car} 
-/>
+        <AddCarSpecsModal
+          show={showModal}
+          onClose={() => setShowModal(false)}
+          theme={theme}
+          car={car}
+        />
       )}
 
       <button
@@ -158,166 +197,162 @@ const CarDetails = () => {
 
 export default CarDetails;
 
-
 // Цей код знаходиться компоненті AddCarSpecsModal
 // <>
-        //   <div
-        //     className="modal-overlay"
-        //     onClick={() => setShowModal(false)}
-        //   ></div>
-        //   <div className={`modal-specs ${theme}`}>
-        //     <h3 className="modal-text">Як додати характеристики?</h3>
+//   <div
+//     className="modal-overlay"
+//     onClick={() => setShowModal(false)}
+//   ></div>
+//   <div className={`modal-specs ${theme}`}>
+//     <h3 className="modal-text">Як додати характеристики?</h3>
 
-            
-        //     <input
-        //       type="text"
-        //       placeholder="Введіть VIN (необов'язково)"
-        //       value={vinCode}
-        //       onChange={(e) => setVinCode(e.target.value)}
-        //       className={`vin-input ${theme}`}
-        //     />
-        //     <button onClick={handleGCSSearch} disabled={loading}>
-        //       {loading ? "Завантаження..." : "Автоматично (GCS)"}
-        //     </button>
-        //     <button onClick={handleBingSearch}>Автоматично (Bing)</button>
-        //     <button onClick={handleAISearch}>Автоматично (AI)</button>
-        //     <button onClick={handleViewOnWikipedia}>
-        //       Переглянути у Wikipedia
-        //     </button>
-        //     <button onClick={() => navigate(`/add-car-specs/${car._id}`)}>
-        //       Вручну
-        //     </button>
-        //     <button onClick={() => setShowModal(false)}>Закрити</button>
-        //   </div>
-  // </>
+//     <input
+//       type="text"
+//       placeholder="Введіть VIN (необов'язково)"
+//       value={vinCode}
+//       onChange={(e) => setVinCode(e.target.value)}
+//       className={`vin-input ${theme}`}
+//     />
+//     <button onClick={handleGCSSearch} disabled={loading}>
+//       {loading ? "Завантаження..." : "Автоматично (GCS)"}
+//     </button>
+//     <button onClick={handleBingSearch}>Автоматично (Bing)</button>
+//     <button onClick={handleAISearch}>Автоматично (AI)</button>
+//     <button onClick={handleViewOnWikipedia}>
+//       Переглянути у Wikipedia
+//     </button>
+//     <button onClick={() => navigate(`/add-car-specs/${car._id}`)}>
+//       Вручну
+//     </button>
+//     <button onClick={() => setShowModal(false)}>Закрити</button>
+//   </div>
+// </>
 
-  // Всі функції пошуку характеристик перенесені в компонент AddCarSpecsModal
-  //   const handleAutoAddSpecs = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${url}/car-specs/ai-search?make=${car?.brand}&model=${car?.name}&year=${car?.year}&carId=${car?._id}`,
-  //       setHeaders()
-  //     );
+// Всі функції пошуку характеристик перенесені в компонент AddCarSpecsModal
+//   const handleAutoAddSpecs = async () => {
+//   try {
+//     const response = await axios.get(
+//       `${url}/car-specs/ai-search?make=${car?.brand}&model=${car?.name}&year=${car?.year}&carId=${car?._id}`,
+//       setHeaders()
+//     );
 
-  //     if (response.data) {
-  //       alert("Характеристики успішно додані!");
-  //     } else {
-  //       alert("Не вдалося отримати характеристики.");
-  //     }
-  //   } catch (error) {
-  //     console.error("❌ Помилка AI-пошуку:", error);
-  //     alert("Помилка під час отримання характеристик.");
-  //   }
-  // };
+//     if (response.data) {
+//       alert("Характеристики успішно додані!");
+//     } else {
+//       alert("Не вдалося отримати характеристики.");
+//     }
+//   } catch (error) {
+//     console.error("❌ Помилка AI-пошуку:", error);
+//     alert("Помилка під час отримання характеристик.");
+//   }
+// };
 
-  // const handleGCSSearch = async () => {
-  //   // if (!car) return;
-  //   try {
-  //     const response = await axios.post(
-  //       `${url}/car-specs/google-search`,
-  //       {
-  //         make: car?.brand,
-  //         model: car?.name,
-  //         year: car?.year,
-  //         carId: car?._id,
-  //         vin: vinCode || undefined, // ✅ Передаємо VIN-код, якщо він є
-  //       },
-  //       setHeaders()
-  //     );
-  //     console.log("Результати GCS:", response.data);
-  //     alert("Характеристики успішно додано за допомогою Google Cloud Search!");
-  //   } catch (error) {
-  //     console.error("Помилка при GCS пошуку:", error);
-  //     alert("Не вдалося отримати характеристики через Google Cloud Search.");
-  //   }
-  // };
+// const handleGCSSearch = async () => {
+//   // if (!car) return;
+//   try {
+//     const response = await axios.post(
+//       `${url}/car-specs/google-search`,
+//       {
+//         make: car?.brand,
+//         model: car?.name,
+//         year: car?.year,
+//         carId: car?._id,
+//         vin: vinCode || undefined, // ✅ Передаємо VIN-код, якщо він є
+//       },
+//       setHeaders()
+//     );
+//     console.log("Результати GCS:", response.data);
+//     alert("Характеристики успішно додано за допомогою Google Cloud Search!");
+//   } catch (error) {
+//     console.error("Помилка при GCS пошуку:", error);
+//     alert("Не вдалося отримати характеристики через Google Cloud Search.");
+//   }
+// };
 
-  // async function handleBingSearch() {
-  //   const response = await fetch(
-  //     "http://localhost:5000/api/carspecs/bing-search",
-  //     {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         make: "BMW",
-  //         model: "X6",
-  //         year: "2024",
-  //         carId: "ID_МАШИНИ",
-  //       }),
-  //     }
-  //   );
+// async function handleBingSearch() {
+//   const response = await fetch(
+//     "http://localhost:5000/api/carspecs/bing-search",
+//     {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         make: "BMW",
+//         model: "X6",
+//         year: "2024",
+//         carId: "ID_МАШИНИ",
+//       }),
+//     }
+//   );
 
-  //   const data = await response.json();
-  //   console.log("Результати Bing:", data);
-  // }
+//   const data = await response.json();
+//   console.log("Результати Bing:", data);
+// }
 
-  // const handleAISearch = async () => {
-  //   try {
-  //     const response = await axios.post(
-  //       `${url}/car-specs/ai-search`,
-  //       {
-  //         make: car?.brand,
-  //         model: car?.name,
-  //         year: car?.year,
-  //         carId: car?._id,
-  //       },
-  //       setHeaders()
-  //     );
-  //     console.log(response.data);
-  //     alert("Характеристики успішно додано за допомогою AI!");
-  //   } catch (error) {
-  //     console.error("Помилка при AI пошуку:", error);
-  //     alert("Не вдалося отримати характеристики через AI.");
-  //   }
-  // };
+// const handleAISearch = async () => {
+//   try {
+//     const response = await axios.post(
+//       `${url}/car-specs/ai-search`,
+//       {
+//         make: car?.brand,
+//         model: car?.name,
+//         year: car?.year,
+//         carId: car?._id,
+//       },
+//       setHeaders()
+//     );
+//     console.log(response.data);
+//     alert("Характеристики успішно додано за допомогою AI!");
+//   } catch (error) {
+//     console.error("Помилка при AI пошуку:", error);
+//     alert("Не вдалося отримати характеристики через AI.");
+//   }
+// };
 
-  // //   // ✅ Отримання характеристик з AUTO.RIA
-  // //   const handleAutoAddSpecs = async () => {
-  // //   if (!car) return;
+// //   // ✅ Отримання характеристик з AUTO.RIA
+// //   const handleAutoAddSpecs = async () => {
+// //   if (!car) return;
 
-  // //   try {
-  // //     const response = await axios.get(
-  // //       `${url}/car-specs/auto-ria?make=${car.brand}&model=${car.name}&year=${car.year}&carId=${car._id}`,
-  // //       setHeaders()
-  // //     );
+// //   try {
+// //     const response = await axios.get(
+// //       `${url}/car-specs/auto-ria?make=${car.brand}&model=${car.name}&year=${car.year}&carId=${car._id}`,
+// //       setHeaders()
+// //     );
 
-  // //     if (response.data) {
-  // //       alert("✅ Характеристики успішно отримано та збережено!");
-  // //     } else {
-  // //       alert("⚠️ Не вдалося знайти характеристики на AUTO.RIA.");
-  // //     }
-  // //   } catch (error) {
-  // //     console.error("❌ Помилка отримання характеристик:", error);
-  // //     alert("❌ Помилка під час отримання характеристик.");
-  // //   }
-  // // };
+// //     if (response.data) {
+// //       alert("✅ Характеристики успішно отримано та збережено!");
+// //     } else {
+// //       alert("⚠️ Не вдалося знайти характеристики на AUTO.RIA.");
+// //     }
+// //   } catch (error) {
+// //     console.error("❌ Помилка отримання характеристик:", error);
+// //     alert("❌ Помилка під час отримання характеристик.");
+// //   }
+// // };
 
-  // // const handleAutoAddSpecs = async () => {
-  // //   try {
-  // //     const response = await axios.get(
-  // //       `${url}/car-specs/auto-ria/search?make=${car?.brand}&model=${car?.name}&year=${car?.year}`,
-  // //       setHeaders()
-  // //     );
+// // const handleAutoAddSpecs = async () => {
+// //   try {
+// //     const response = await axios.get(
+// //       `${url}/car-specs/auto-ria/search?make=${car?.brand}&model=${car?.name}&year=${car?.year}`,
+// //       setHeaders()
+// //     );
 
-  // //     if (response.data) {
-  // //       alert("Характеристики авто успішно отримані з AUTO.RIA!");
-  // //       console.log("AUTO.RIA Specs:", response.data);
-  // //     } else {
-  // //       alert("Не вдалося знайти характеристики авто.");
-  // //     }
-  // //   } catch (error) {
-  // //     console.error("Помилка пошуку авто на AUTO.RIA:", error);
-  // //     alert("Помилка під час отримання характеристик.");
-  // //   }
-  // // };
+// //     if (response.data) {
+// //       alert("Характеристики авто успішно отримані з AUTO.RIA!");
+// //       console.log("AUTO.RIA Specs:", response.data);
+// //     } else {
+// //       alert("Не вдалося знайти характеристики авто.");
+// //     }
+// //   } catch (error) {
+// //     console.error("Помилка пошуку авто на AUTO.RIA:", error);
+// //     alert("Помилка під час отримання характеристик.");
+// //   }
+// // };
 
-  // // ✅ Відкриття Wikipedia в новій вкладці
-  // const handleViewOnWikipedia = () => {
-  //   const wikiUrl = `https://en.wikipedia.org/wiki/${car?.brand}_${car?.name}_${car?.year}`;
-  //   window.open(wikiUrl, "_blank");
-  // };
-
-
+// // ✅ Відкриття Wikipedia в новій вкладці
+// const handleViewOnWikipedia = () => {
+//   const wikiUrl = `https://en.wikipedia.org/wiki/${car?.brand}_${car?.name}_${car?.year}`;
+//   window.open(wikiUrl, "_blank");
+// };
 
 // const handleAutoAddSpecs = async () => {
 //   try {

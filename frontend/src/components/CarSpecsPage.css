@@ -30,6 +30,21 @@
   /* color: #333; */
 }
 
+.specs-button-container {
+  display: flex;
+  justify-content: space-around;
+}
+
+.edit-specs-button.light {
+  background-image: url("../assets/pexels-hngstrm-1939485.jpg");
+  color: black;
+}
+
+.edit-specs-button.dark {
+  background-image: url("../assets/pexels-danielabsi-952670.jpg");
+  color: white;
+}
+
 .specs-section {
   display: flex;
   justify-content: center;

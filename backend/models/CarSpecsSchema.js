@@ -2,10 +2,31 @@ const mongoose = require("mongoose");
 
 const CarSpecsSchema = new mongoose.Schema(
   {
+    // carId: {
+    //   type: String, // Використовуємо рядок, щоб уникнути обмежень ObjectId
+    //   required: true,
+    //   unique: true, // Унікальність carId для кожної машини
+    // },
     carId: {
-      type: String, // Використовуємо рядок, щоб уникнути обмежень ObjectId
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Car",
       required: true,
-      unique: true, // Унікальність carId для кожної машини
+      unique: true,
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    vin: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      minlength: 17,
+      maxlength: 17,
+      // unique: true,
     },
 
     // Джерело даних (додали nhtsa)
@@ -89,6 +110,136 @@ const CarSpecsSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("CarSpecs", CarSpecsSchema);
+
+// const mongoose = require("mongoose");
+
+// const CarSpecsSchema = new mongoose.Schema(
+//   {
+//     carId: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "Car",
+//       required: true,
+//       unique: true,
+//     },
+
+//     createdBy: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "User",
+//       required: true,
+//     },
+
+//     brand: {
+//       type: String,
+//       trim: true,
+//     },
+//     model: {
+//       type: String,
+//       trim: true,
+//     },
+
+//     year: {
+//       type: Number,
+//     },
+
+//     vin: {
+//       type: String,
+//       trim: true,
+//       uppercase: true,
+//       minlength: 17,
+//       maxlength: 17,
+//       unique: true,
+//     },
+
+//     source: {
+//       type: String,
+//       enum: [
+//         "manual",
+//         "auto-ria",
+//         "AI",
+//         "bing",
+//         "msn",
+//         "gcs",
+//         "algolia",
+//         "nhtsa",
+//       ],
+//       required: true,
+//     },
+
+//     fuelType: {
+//       type: String,
+//       enum: ["бензин", "дизель", "гібрид", "електро"],
+//     },
+
+//     combustionEngine: {
+//       engineDisplacement: Number,
+//       horsepower: Number,
+//       torque: Number,
+//       fuelConsumption: Number,
+//       transmission: String,
+//     },
+
+//     hybrid: {
+//       hybridType: String,
+//       engineDisplacement: Number,
+//       electricMotorPower: Number,
+//       totalHorsepower: Number,
+//       electricRange: Number,
+//     },
+
+//     electric: {
+//       batteryCapacity: Number,
+//       range: Number,
+//       electricMotorPower: Number,
+//       chargeTime: String,
+//       chargePort: String,
+//     },
+
+//     nhtsaSpecs: {
+//       make: String,
+//       model: String,
+//       makeId: Number,
+//       modelId: Number,
+//       year: Number,
+//       vehicleType: String,
+//       plantCountry: String,
+//       plantCompany: String,
+//       bodyClass: String,
+//     },
+
+//     additionalSpecs: {
+//       type: Map,
+//       of: mongoose.Schema.Types.Mixed,
+//       default: {},
+//     },
+
+//     usefulLinks: [
+//       {
+//         title: {
+//           type: String,
+//           trim: true,
+//         },
+//         url: {
+//           type: String,
+//           trim: true,
+//         },
+//       },
+//     ],
+//   },
+//   { timestamps: true }
+// );
+
+// // Автоматичне підтягування createdBy (тільки ім'я і email)
+// CarSpecsSchema.pre(/^find/, function (next) {
+//   this.populate({
+//     path: "createdBy",
+//     select: "name email",
+//   });
+//   next();
+// });
+
+// module.exports = mongoose.model("CarSpecs", CarSpecsSchema);
+
+// 🔵 🔥
 
 // const mongoose = require("mongoose");
 

@@ -64,42 +64,9 @@ const parseCarSpecs = async (url) => {
   }
 };
 
-// exports.msnSearchCarSpecs = async (req, res) => {
-//   const { make, model, year, carId } = req.body;
-
-//   try {
-//     const msnResults = await msnSearchFunction(make, model, year);
-
-//     if (msnResults && msnResults.length > 0) {
-//       const carSpecs = new CarSpecs({
-//         carId,
-//         source: "msn",
-//         usefulLinks: msnResults.map((result) => ({
-//           title: result.title,
-//           url: result.url,
-//         })),
-//         additionalSpecs: {
-//           description: `Дані отримані через MSN (site:autos.msn.com) для ${make} ${model} ${year}`,
-//         },
-//       });
-
-//       await carSpecs.save();
-//       res
-//         .status(200)
-//         .json({ message: "MSN-результати успішно збережені!", carSpecs });
-//     } else {
-//       res
-//         .status(404)
-//         .json({ message: "MSN не знайшов характеристик для цього авто." });
-//     }
-//   } catch (error) {
-//     console.error("Помилка MSN-пошуку:", error);
-//     res.status(500).json({ message: "Сталася помилка при пошуку через MSN." });
-//   }
-// };
-
 exports.msnSearchCarSpecs = async (req, res) => {
-  const { make, model, year, carId } = req.body;
+  // const { make, model, year, carId } = req.body;
+  const { make, model, year, carId, createdBy } = req.body; // 🛠️ Додаємо createdBy
 
   try {
     const msnResults = await msnSearchFunction(make, model, year);
@@ -123,6 +90,7 @@ exports.msnSearchCarSpecs = async (req, res) => {
     // ✅ Якщо немає — зберігаємо нові
     const carSpecs = new CarSpecs({
       carId,
+      createdBy,
       source: "msn",
       usefulLinks: msnResults.map((result) => ({
         title: result.title,
@@ -145,50 +113,25 @@ exports.msnSearchCarSpecs = async (req, res) => {
   }
 };
 
-// const parseCarSpecs = async (url) => {
-//   try {
-//     console.log("URL IN PARCE : ", url);
-//     const response = await axios.get(url);
-//     const $ = cheerio.load(response.data); // Завантажуємо HTML
-
-//     // Приклад: парсимо тип палива
-//     const fuelType = $("selector-for-fuel-type").text(); // Замість 'selector-for-fuel-type' вставте правильний CSS-селектор для типу палива
-
-//     // Приклад: парсимо об'єм двигуна
-//     const engineDisplacement = $("selector-for-engine-displacement").text(); // Замість 'selector-for-engine-displacement' вставте правильний CSS-селектор для об'єму двигуна
-
-//     // Інші характеристики
-//     const horsepower = $("selector-for-horsepower").text();
-//     const torque = $("selector-for-torque").text();
-//     const fuelConsumption = $("selector-for-fuel-consumption").text();
-//     const transmission = $("selector-for-transmission").text();
-
-//     return {
-//       fuelType,
-//       combustionEngine: {
-//         engineDisplacement,
-//         horsepower,
-//         torque,
-//         fuelConsumption,
-//         transmission,
-//       },
-//     };
-//   } catch (error) {
-//     console.error("Помилка при парсингу:", error);
-//     return null;
-//   }
-// };
-
 // Кешування даних (наприклад, на 24 години)
 const CACHE_EXPIRATION = 24 * 60 * 60 * 1000;
 
 // ✅ Додавання характеристик у базу
 exports.addCarSpecs = async (req, res) => {
   try {
-    const specs = new CarSpecs(req.body);
+    const { carId, createdBy, ...rest } = req.body; // 🛠️ ОНОВЛЕНО: createdBy
+    // const specs = new CarSpecs(req.body);
+    const specs = new CarSpecs({
+      carId,
+      createdBy,
+      // source: "manual",
+      source,
+      ...rest,
+    });
     await specs.save();
     res.status(201).json(specs);
   } catch (error) {
+    console.error("❌ Помилка додавання характеристик:", error);
     res.status(500).json({ error: "Не вдалося додати характеристики авто" });
   }
 };
@@ -196,7 +139,10 @@ exports.addCarSpecs = async (req, res) => {
 // ✅ Отримання характеристик з бази
 exports.getCarSpecs = async (req, res) => {
   try {
-    const specs = await CarSpecs.findOne({ carId: req.params.carId });
+    // const specs = await CarSpecs.findOne({ carId: req.params.carId });
+    const specs = await CarSpecs.findOne({ carId: req.params.carId })
+      .populate("carId", "brand name year")
+      .populate("createdBy", "name email"); // 🛠️ ОНОВЛЕНО
     if (!specs) {
       return res.status(404).json({ message: "Характеристики не знайдено" });
     }
@@ -206,114 +152,83 @@ exports.getCarSpecs = async (req, res) => {
   }
 };
 
-// // AI-пошук технічних характеристик
-// exports.aiSearchCarSpecs = async (req, res) => {
-//   try {
-//     const { make, model, year, carId } = req.query;
+// 🆕 ОНОВЛЕННЯ характеристик
+exports.updateCarSpecs = async (req, res) => {
+  try {
+    const { carId } = req.params;
+    // const { userId, ...updates } = req.body; // 🛠️ userId для перевірки власника
+    const updates = req.body;
 
-//     if (!make || !model || !year || !carId) {
-//       return res.status(400).json({ error: "Відсутні необхідні параметри" });
-//     }
+    const existingSpecs = await CarSpecs.findById(carId);
+    if (!existingSpecs) {
+      return res.status(404).json({ message: "Характеристики не знайдено" });
+    }
 
-//     console.log("🔎 AI-пошук характеристик для:", { make, model, year });
+    const userId = req.user._id;
+    const isAdmin = req.user.isAdmin;
 
-//     // Симуляція запиту до AI (замінити на реальний пошук)
-//     const aiSpecs = {
-//       fuelType: "бензин",
-//       combustionEngine: {
-//         engineDisplacement: 2998,
-//         horsepower: 375,
-//         torque: 500,
-//         fuelConsumption: 9.0,
-//         transmission: "Автоматична",
-//       },
-//       source: "AI", // Додаємо значення для поля source
-//     };
+    // if (existingSpecs.createdBy.toString() !== userId) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "Ви не маєте права редагувати ці характеристики" });
+    // }
+    if (!existingSpecs.createdBy.equals(userId) && !isAdmin) {
+      return res.status(403).json({
+        message: "Ви не маєте права редагувати ці характеристики",
+      });
+    }
 
-//     // Збереження знайдених характеристик у базу
-//     const specs = new CarSpecs({ carId, ...aiSpecs });
-//     await specs.save();
+    Object.assign(existingSpecs, updates);
+    await existingSpecs.save();
 
-//     res.json(specs);
-//   } catch (error) {
-//     console.error("❌ Помилка AI-пошуку:", error);
-//     res.status(500).json({ error: "Помилка отримання характеристик" });
-//   }
-// };
+    res
+      .status(200)
+      .json({ message: "Характеристики оновлено!", carSpecs: existingSpecs });
+  } catch (error) {
+    console.error("❌ Помилка оновлення:", error);
+    res.status(500).json({ message: "Не вдалося оновити характеристики" });
+  }
+};
 
-// Функція для отримання даних з GCS і NHTSA
-// exports.getCarSpecsFromGCS = async (req, res) => {
-//   try {
-//     const { carId, make, model, year, vin } = req.body;
+// 🆕 ВИДАЛЕННЯ характеристик
+exports.deleteCarSpecs = async (req, res) => {
+  try {
+    const { carId } = req.params;
+    // const { userId } = req.body;
 
-//     // Перевірка необхідних параметрів
-//     if (!carId || (!vin && (!make || !model || !year))) {
-//       return res
-//         .status(400)
-//         .json({ error: "Потрібен carId і VIN або make, model, year" });
-//     }
+    const existingSpecs = await CarSpecs.findById(carId);
+    if (!existingSpecs) {
+      return res.status(404).json({ message: "Характеристики не знайдено" });
+    }
 
-//     // Перевіряємо наявність даних у кеші
-//     let existingSpecs = await CarSpecs.findOne({ carId, source: "nhtsa" });
-//     if (existingSpecs) {
-//       console.log("✅ Характеристики отримано з кешу");
-//       return res.status(200).json({
-//         message: "Характеристики отримано з кешу",
-//         carSpecs: existingSpecs,
-//       });
-//     }
+    const userId = req.user._id;
+    const isAdmin = req.user.isAdmin;
 
-//     // 🔍 Отримуємо корисні посилання з GCS
-//     const results = await googleSearchCarSpecs(`${make} ${model} ${year}`);
-//     const usefulLinks = results.length
-//       ? results.map((item) => ({
-//           title: item.title,
-//           url: item.link,
-//         }))
-//       : [];
+    // if (existingSpecs.createdBy.toString() !== userId) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "Ви не маєте права видаляти ці характеристики" });
+    // }
+    if (!existingSpecs.createdBy.equals(userId) && !isAdmin) {
+      return res.status(403).json({
+        message: "Ви не маєте права видаляти ці характеристики",
+      });
+    }
 
-//     // 🔍 Отримуємо технічні характеристики з NHTSA API
-//     const nhtsaSpecs = await nhtsaSearchCarSpecs({ vin, make, model, year });
-//     if (!nhtsaSpecs) {
-//       // Якщо NHTSA не дало результатів, зберігаємо лише посилання
-//       const newCarSpecs = new CarSpecs({
-//         carId,
-//         source: "gcs", // Джерело лише GCS, якщо NHTSA не знайдено
-//         usefulLinks,
-//       });
-//       await newCarSpecs.save();
-//       return res.status(200).json({
-//         message:
-//           "Технічні характеристики не знайдено, збережено лише посилання",
-//         carSpecs: newCarSpecs,
-//       });
-//     }
-
-//     // Збереження у базу MongoDB з даними з NHTSA
-//     const newCarSpecs = new CarSpecs({
-//       carId,
-//       source: "nhtsa", // Джерело — NHTSA, оскільки додаємо його дані
-//       usefulLinks,
-//       ...nhtsaSpecs, // Розпаковуємо характеристики з NHTSA
-//     });
-
-//     await newCarSpecs.save();
-//     console.log("✅ Дані збережено в MongoDB");
-
-//     res.status(200).json({
-//       message: "Характеристики додано",
-//       carSpecs: newCarSpecs,
-//     });
-//   } catch (error) {
-//     console.error("❌ Помилка в getCarSpecsFromGCS:", error.message);
-//     res.status(500).json({ error: "Помилка сервера" });
-//   }
-// };
+    await existingSpecs.deleteOne();
+    res.status(200).json({ message: "Характеристики видалено!" });
+  } catch (error) {
+    console.error("❌ Помилка видалення:", error);
+    res.status(500).json({ message: "Не вдалося видалити характеристики" });
+  }
+};
 
 // Функція для отримання даних з GCS і NHTSA
 exports.getCarSpecsFromGCS = async (req, res) => {
   try {
-    const { carId, make, model, year, vin } = req.body;
+    // const { carId, make, model, year, vin } = req.body;
+    const { carId, make, model, year, vin, createdBy } = req.body;
+    console.log("Отримано дані з клієнта:", req.body);
 
     if (!carId || (!vin && (!make || !model || !year))) {
       return res
@@ -345,6 +260,8 @@ exports.getCarSpecsFromGCS = async (req, res) => {
     if (!nhtsaSpecs) {
       const newCarSpecs = new CarSpecs({
         carId,
+        createdBy,
+        vin,
         source: "gcs",
         usefulLinks,
       });
@@ -359,6 +276,8 @@ exports.getCarSpecsFromGCS = async (req, res) => {
 
     const newCarSpecs = new CarSpecs({
       carId,
+      createdBy,
+      vin,
       source: "nhtsa",
       usefulLinks,
       ...nhtsaSpecs,
@@ -376,166 +295,6 @@ exports.getCarSpecsFromGCS = async (req, res) => {
     res.status(500).json({ error: "Помилка сервера" });
   }
 };
-
-// // Функція для отримання даних з GCS
-// exports.getCarSpecsFromGCS = async (req, res) => {
-//   try {
-//     const { carId, make, model, year } = req.body;
-
-//     if (!carId || !make || !model || !year) {
-//       return res
-//         .status(400)
-//         .json({ error: "Необхідні carId, make, model, і year" });
-//     }
-
-//     // // Логіка пошуку характеристик через GCS...
-//     // const results = await googleSearchCarSpecs(`${make} ${model} ${year}`);
-
-//     // if (results.length === 0) {
-//     //   return res.status(404).json({ error: "Не знайдено інформації" });
-//     // }
-
-//     // let carSpecs = null;
-//     // for (let i = 0; i < results.length; i++) {
-//     //   const specs = await parseCarSpecs(results[i].link);
-//     //   if (specs) {
-//     //     carSpecs = specs; // Якщо знайшли характеристики, зберігаємо
-//     //     break; // Виходимо з циклу, коли знайшли потрібні характеристики
-//     //   }
-//     // }
-
-//     // // Тут ми більше не перевіряємо на carSpecs, оскільки хочемо зберегти навіть пусті дані, якщо нічого не знайдено
-
-//     // // Корисні посилання
-//     // const usefulLinks = results.map((item) => ({
-//     //   title: item.title,
-//     //   url: item.link,
-//     // }));
-//     // 🔍 Отримуємо корисні посилання з GCS
-//     const results = await googleSearchCarSpecs(`${make} ${model} ${year}`);
-
-//     // Якщо посилання не знайдено
-//     const usefulLinks = results.length
-//       ? results.map((item) => ({
-//           title: item.title,
-//           url: item.link,
-//         }))
-//       : [];
-
-//     // 🔍 Отримуємо технічні характеристики з NHTSA API
-//     const carSpecs = await nhtsaSearchCarSpecs(make, model, year);
-
-//     if (!carSpecs) {
-//       return res.status(404).json({
-//         error: "Не знайдено технічних характеристик в NHTSA API",
-//         usefulLinks, // Все одно повертаємо корисні посилання
-//       });
-//     }
-
-//     // Збереження у базу MongoDB, навіть якщо carSpecs порожнє
-//     const newCarSpecs = new CarSpecs({
-//       carId,
-//       source: "gcs",
-//       usefulLinks,
-//       ...carSpecs, // Додаємо характеристики, якщо вони є
-//     });
-
-//     await newCarSpecs.save();
-
-//     res
-//       .status(200)
-//       .json({ message: "Характеристики додано", carSpecs: newCarSpecs });
-//   } catch (error) {
-//     console.error("Помилка отримання даних з GCS:", error);
-//     res.status(500).json({ error: "Помилка сервера" });
-//   }
-// };
-// exports.getCarSpecsFromGCS = async (req, res) => {
-//   try {
-//     const { carId, make, model, year } = req.body;
-
-//     if (!carId || !make || !model || !year) {
-//       return res
-//         .status(400)
-//         .json({ error: "Необхідні carId, make, model, і year" });
-//     }
-
-//     // Логіка пошуку характеристик через GCS...
-//     const results = await googleSearchCarSpecs(`${make} ${model} ${year}`);
-
-//     if (results.length === 0) {
-//       return res.status(404).json({ error: "Не знайдено інформації" });
-//     }
-
-//     // Приклад додаткових характеристик
-//     const additionalSpecs = {
-//       exampleSpec: "Дані з GCS",
-//     };
-
-//     const usefulLinks = results.map((item) => ({
-//       title: item.title,
-//       url: item.link,
-//     }));
-
-//     // Збереження у базу MongoDB
-//     const carSpecs = new CarSpecs({
-//       carId,
-//       source: "gcs",
-//       additionalSpecs,
-//       usefulLinks,
-//     });
-
-//     await carSpecs.save();
-
-//     res.status(200).json({ message: "Характеристики додано", carSpecs });
-//   } catch (error) {
-//     console.error("Помилка отримання даних з GCS:", error);
-//     res.status(500).json({ error: "Помилка сервера" });
-//   }
-// };
-
-// exports.getCarSpecsFromGCS = async (req, res) => {
-//   try {
-//     const { carId, query } = req.body;
-
-//     if (!carId || !query) {
-//       return res.status(400).json({ error: "Необхідні carId і query" });
-//     }
-
-//     // Викликаємо функцію пошуку через GCS
-//     const results = await googleSearchCarSpecs(query);
-
-//     if (results.length === 0) {
-//       return res.status(404).json({ error: "Не знайдено інформації" });
-//     }
-
-//     // Отримуємо корисні посилання
-//     const usefulLinks = results.map((item) => ({
-//       title: item.title,
-//       url: item.link,
-//     }));
-
-//     // Додаткові характеристики (сюди можна додати логіку парсингу)
-//     const additionalSpecs = {
-//       exampleSpec: "Дані з GCS",
-//     };
-
-//     // Збереження в MongoDB
-//     const carSpecs = new CarSpecs({
-//       carId,
-//       source: "gcs",
-//       additionalSpecs,
-//       usefulLinks,
-//     });
-
-//     await carSpecs.save();
-
-//     res.status(200).json({ message: "Характеристики додані", carSpecs });
-//   } catch (error) {
-//     console.error("Помилка отримання даних з GCS:", error);
-//     res.status(500).json({ error: "Помилка сервера" });
-//   }
-// };
 
 // Отримання збережених характеристик авто з GCS
 exports.getCarSpecsByCarId = async (req, res) => {
@@ -555,7 +314,8 @@ exports.getCarSpecsByCarId = async (req, res) => {
 
 // 🔹 Bing-пошук характеристик
 exports.bingSearchCarSpecs = async (req, res) => {
-  const { make, model, year, carId } = req.body;
+  // const { make, model, year, carId } = req.body;
+  const { make, model, year, carId, createdBy } = req.body; // 🛠️ Додаємо createdBy
 
   try {
     const bingResults = await bingSearchFunction(make, model, year);
@@ -563,6 +323,7 @@ exports.bingSearchCarSpecs = async (req, res) => {
     if (bingResults && bingResults.length > 0) {
       const carSpecs = new CarSpecs({
         carId,
+        createdBy,
         source: "bing",
         usefulLinks: bingResults.map((result) => ({
           title: result.title,
@@ -589,7 +350,8 @@ exports.bingSearchCarSpecs = async (req, res) => {
 };
 
 exports.aiSearchCarSpecs = async (req, res) => {
-  const { make, model, year, carId } = req.body;
+  // const { make, model, year, carId } = req.body;
+  const { make, model, year, carId, createdBy } = req.body; // 🛠️ Додаємо createdBy
 
   try {
     // Викликаємо AI для пошуку характеристик
@@ -598,6 +360,7 @@ exports.aiSearchCarSpecs = async (req, res) => {
     if (aiResponse) {
       const carSpecs = new CarSpecs({
         carId,
+        createdBy,
         source: "AI", // Позначаємо, що це AI пошук
         fuelType: aiResponse.fuelType,
         combustionEngine: {
@@ -647,7 +410,7 @@ exports.scrapeCarSpecs = async (req, res) => {
 // ✅ Отримання характеристик з AUTO.RIA
 exports.getAutoRiaSpecs = async (req, res) => {
   try {
-    const { make, model, year, carId } = req.query;
+    const { make, model, year, carId, createdBy } = req.query;
     console.log("🔵 Отримано запит на авто:", { make, model, year, carId });
 
     if (!make || !model || !year || !carId) {
@@ -729,6 +492,7 @@ exports.getAutoRiaSpecs = async (req, res) => {
     // 6️⃣ Зберігаємо характеристики в базу
     const specs = new CarSpecs({
       carId,
+      createdBy,
       source: "auto-ria",
       fuelType: autoData.fuelNameUa || "невідомо",
       combustionEngine: autoData.engine_capacity
@@ -775,220 +539,3 @@ exports.getAutoRiaSpecs = async (req, res) => {
     res.status(500).json({ error: "Помилка під час обробки запиту" });
   }
 };
-
-// exports.searchCarOnAutoRia = async (req, res) => {
-//   const { make, model, year } = req.query;
-//   console.log("🔵 Пошук авто:", { make, model, year });
-
-//   if (!AUTO_RIA_API_KEY) {
-//     return res
-//       .status(500)
-//       .json({ error: "❌ API-ключ для AUTO.RIA не знайдено!" });
-//   }
-
-//   try {
-//     // 🔹 Крок 1: Отримуємо ID бренду (marka_id)
-//     const marksUrl = `https://developers.ria.com/auto/categories/1/marks?api_key=${AUTO_RIA_API_KEY}`;
-//     const marksResponse = await axios.get(marksUrl);
-//     const brand = marksResponse.data.find(
-//       (b) => b.name.toLowerCase() === make.toLowerCase()
-//     );
-
-//     if (!brand) {
-//       return res
-//         .status(404)
-//         .json({ error: `❌ Виробник '${make}' не знайдений!` });
-//     }
-
-//     const marka_id = brand.value;
-//     console.log(`✅ ID виробника (${make}):`, marka_id);
-
-//     // 🔹 Крок 2: Отримуємо ID моделі (model_id)
-//     const modelsUrl = `https://developers.ria.com/auto/categories/1/marks/${marka_id}/models?api_key=${AUTO_RIA_API_KEY}`;
-//     const modelsResponse = await axios.get(modelsUrl);
-//     const carModel = modelsResponse.data.find(
-//       (m) => m.name.toLowerCase() === model.toLowerCase()
-//     );
-
-//     if (!carModel) {
-//       return res.status(404).json({
-//         error: `❌ Модель '${model}' не знайдена у виробника '${make}'!`,
-//       });
-//     }
-
-//     const model_id = carModel.value;
-//     console.log(`✅ ID моделі (${model}):`, model_id);
-
-//     // 🔹 Крок 3: Пошук авто за параметрами
-//     const searchUrl = `https://developers.ria.com/auto/search?api_key=${AUTO_RIA_API_KEY}&marka_id=${marka_id}&model_id=${model_id}&yers=${year}&category_id=1`;
-//     console.log("🔍 Виконуємо пошук за URL:", searchUrl);
-
-//     const searchResponse = await axios.get(searchUrl);
-
-//     if (!searchResponse.data.result.search_result.ids.length) {
-//       return res
-//         .status(404)
-//         .json({ error: "❌ Авто не знайдено за заданими параметрами!" });
-//     }
-
-//     // Беремо перший результат
-//     const carId = searchResponse.data.result.search_result.ids[0];
-//     console.log("🚗 Знайдено авто, ID:", carId);
-
-//     // 🔹 Крок 4: Отримуємо характеристики знайденого авто
-//     const carDetailsUrl = `https://developers.ria.com/auto/info?api_key=${AUTO_RIA_API_KEY}&auto_id=${carId}`;
-//     const carDetailsResponse = await axios.get(carDetailsUrl);
-
-//     res.json(carDetailsResponse.data);
-//   } catch (error) {
-//     console.error("❌ Помилка пошуку авто:", error.message);
-//     res.status(500).json({ error: "Помилка під час пошуку авто." });
-//   }
-// };
-
-// // ✅ Парсинг характеристик з Wikipedia
-// exports.scrapeCarSpecs = async (req, res) => {
-//   const { make, model, year } = req.query;
-//   console.log("🔵 Отримано запит на парсинг:", req.query);
-//   console.log("🔵 Отримано запит:", { make, model, year });
-
-//   try {
-//     let url = `https://en.wikipedia.org/wiki/${make}_${model}`;
-//     if (year) {
-//       url += `_${year}`;
-//     }
-//     console.log("Отримуємо сторінку:", url);
-//     console.log("🌍 Формується запит до:", url);
-
-//     let { data } = await axios.get(url, {
-//       headers: { "User-Agent": "Mozilla/5.0" }, // Додаємо User-Agent, щоб обійти блокування
-//     });
-
-//     console.log("🟢 HTML отримано, довжина:", data.length);
-//     console.log("🔍 Перші 500 символів:", data.slice(0, 500));
-
-//     // let { data } = await axios.get(url);
-//     // console.log("HTML сторінки:", data.slice(0, 500)); // Виведе перші 500 символів HTML
-
-//     let $ = cheerio.load(data);
-
-//     let specifications = {};
-//     const tableExists = $("table.infobox").length > 0;
-//     console.log("Таблиця знайдена?", tableExists);
-
-//     console.log("HTML таблиці:", $("table.infobox").html());
-
-//     if (!$("table.infobox").length) {
-//       console.error("Таблиця характеристик не знайдена!");
-//       return res
-//         .status(404)
-//         .json({ error: "Таблиця характеристик не знайдена." });
-//     }
-
-//     $("table.infobox tr").each((index, element) => {
-//       const key = $(element).find("th").text().trim();
-//       // const value = $(element).find("td").text().trim();
-//       const value = $(element)
-//         .find("td")
-//         .text()
-//         .replace(/\[.*?\]/g, "")
-//         .trim();
-//       console.log(`🔹 ${key}: ${value}`); // Вивід характеристик
-
-//       if (key && value) {
-//         specifications[key] = value;
-//       }
-//     });
-
-//     // Якщо характеристики не знайдено, пробуємо без року
-//     if (Object.keys(specifications).length === 0 && year) {
-//       console.warn(`Сторінка ${url} не знайдена, пробуємо без року...`);
-//       url = `https://en.wikipedia.org/wiki/${make}_${model}`;
-//       data = (await axios.get(url)).data;
-//       $ = cheerio.load(data);
-
-//       $("table.infobox tr").each((index, element) => {
-//         const key = $(element).find("th").text().trim();
-//         const value = $(element).find("td").text().trim();
-
-//         if (key && value) {
-//           specifications[key] = value;
-//         }
-//       });
-//     }
-
-//     if (Object.keys(specifications).length === 0) {
-//       return res.status(404).json({ error: "Характеристики не знайдено." });
-//     }
-
-//     console.log("Отримані характеристики:", specifications);
-
-//     res.json(specifications);
-//   } catch (error) {
-//     console.error("Помилка парсингу:", error.message);
-//     res.status(500).json({ error: "Помилка під час отримання характеристик." });
-//   }
-// };
-
-// exports.scrapeCarSpecs = async (req, res) => {
-//   const { make, model, year } = req.query;
-
-//   if (!make || !model) {
-//     return res.status(400).json({ error: "Марка і модель обов’язкові" });
-//   }
-
-//   try {
-//     // Формуємо URL для Wikipedia з урахуванням року випуску
-//     let url = `https://en.wikipedia.org/wiki/${make}_${model}`;
-//     if (year) {
-//       url += `_${year}`; // Додаємо рік, якщо він вказаний
-//     }
-
-//     const { data } = await axios.get(url);
-//     const $ = cheerio.load(data);
-
-//     const specifications = {};
-
-//     // Парсимо характеристики з таблиці
-//     $("table.infobox tr").each((index, element) => {
-//       const key = $(element).find("th").text().trim();
-//       const value = $(element).find("td").text().trim();
-//       if (key && value) {
-//         specifications[key] = value;
-//       }
-//     });
-
-//     if (Object.keys(specifications).length === 0) {
-//       return res.status(404).json({ error: "Дані не знайдено" });
-//     }
-
-//     res.json(specifications);
-//   } catch (error) {
-//     console.error("Помилка парсингу:", error.message);
-//     res.status(500).json({ error: "Не вдалося отримати характеристики" });
-//   }
-// };
-
-// const CarSpecs = require("../models/CarSpecsSchema");
-
-// exports.addCarSpecs = async (req, res) => {
-//   try {
-//     const specs = new CarSpecs(req.body);
-//     await specs.save();
-//     res.status(201).json(specs);
-//   } catch (error) {
-//     res.status(500).json({ error: "Не вдалося додати характеристики авто" });
-//   }
-// };
-
-// exports.getCarSpecs = async (req, res) => {
-//   try {
-//     const specs = await CarSpecs.findOne({ carId: req.params.carId });
-//     if (!specs) {
-//       return res.status(404).json({ message: "Характеристики не знайдено" });
-//     }
-//     res.json(specs);
-//   } catch (error) {
-//     res.status(500).json({ error: "Помилка отримання характеристик авто" });
-//   }
-// };

@@ -1,0 +1,88 @@
+.edit-specs-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+}
+
+label,
+.section {
+    display: block;
+    margin-bottom: 15px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+}
+
+.area-specs.light{
+    /* background-image: url("../assets/pexels-hngstrm-1939485.jpg"); */
+    background-color: gainsboro;
+}
+
+.area-specs.dark {
+    /* background-image: url("../assets/pexels-danielabsi-952670.jpg"); */
+    background-color: black;
+    color: aliceblue;
+}
+
+.option.light {
+    background-color: gainsboro;
+}
+
+.option {
+    background-color: black;
+}
+
+.additional-input,
+.link-input {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.additional-input input,
+.link-input input {
+    flex: 1;
+}
+
+.additional-input input.light,
+.link-input input.light {
+    background-color: gainsboro;
+}
+
+button {
+    margin-top: 10px;
+    padding: 8px 12px;
+}
+
+.error {
+    color: red;
+    font-size: 0.9em;
+}
+
+.message {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+
+    .additional-input,
+    .link-input {
+        flex-direction: column;
+    }
+
+    .buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

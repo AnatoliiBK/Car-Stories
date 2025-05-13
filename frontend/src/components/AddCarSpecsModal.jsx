@@ -3,11 +3,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { url, setHeaders } from "../slices/api";
 import "./CarDetails.css";
+import { useSelector } from "react-redux";
 
 const AddCarSpecsModal = ({ show, onClose, theme, car }) => {
   const navigate = useNavigate();
   const [vinCode, setVinCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const currentUser = useSelector((state) => state.auth);
 
   const handleGCSSearch = async () => {
     try {
@@ -20,6 +22,7 @@ const AddCarSpecsModal = ({ show, onClose, theme, car }) => {
           year: car?.year,
           carId: car?._id,
           vin: vinCode || undefined,
+          createdBy: currentUser?._id, // ✅
         },
         setHeaders()
       );
@@ -40,6 +43,7 @@ const AddCarSpecsModal = ({ show, onClose, theme, car }) => {
         model: car?.name,
         year: car?.year,
         carId: car?._id,
+        createdBy: currentUser?._id,
       });
       console.log("Результати Bing:", response.data);
       alert("Характеристики додано за допомогою Bing!");
@@ -74,6 +78,7 @@ const AddCarSpecsModal = ({ show, onClose, theme, car }) => {
         model: car?.name,
         year: car?.year,
         carId: car?._id,
+        createdBy: currentUser?._id,
       },
       setHeaders()
     );
@@ -100,6 +105,7 @@ const AddCarSpecsModal = ({ show, onClose, theme, car }) => {
           model: car?.name,
           year: car?.year,
           carId: car?._id,
+          createdBy: currentUser?._id,
         },
         setHeaders()
       );

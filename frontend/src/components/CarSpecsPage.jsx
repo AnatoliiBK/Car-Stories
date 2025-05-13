@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { url } from "../slices/api";
 import "./CarSpecsPage.css";
 import { useTheme } from "../components/ThemeContext";
+import { useSelector } from "react-redux";
 
 const CarSpecsPage = () => {
   const { carId } = useParams();
   const [specs, setSpecs] = useState(null);
   const { theme } = useTheme();
+  const currentUser = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   console.log("CAR ID PAGE : ", carId);
+  console.log("CURRENT USER IN SPECS PAGE", currentUser)
+  console.log("SPECS : ", specs);
 
   useEffect(() => {
     const fetchSpecs = async () => {
       try {
         const response = await axios.get(`${url}/car-specs/${carId}`);
+        console.log("PAGE CAR SPECS : ", response);
         setSpecs(response.data);
       } catch (error) {
         console.error("Помилка завантаження характеристик:", error);
@@ -28,114 +34,140 @@ const CarSpecsPage = () => {
     return <p className="no-specs">Характеристики відсутні</p>;
   }
 
+  const isOwnerOrAdmin =
+    currentUser &&
+    (currentUser._id === specs.createdBy._id || currentUser.isAdmin === true);
+    console.log("IS OWNER OR ADMIN : ", isOwnerOrAdmin);
+  
+
   return (
     <div className={`car-specs-container ${theme}`}>
-      <h2 className="car-title">Дещо про {specs.fuelType} авто</h2>
+      <h2 className="car-title">Дещо про авто {specs.carId.brand} {specs.carId.name} {specs.carId.year }</h2>
+      <p className="car-title">Доданний {specs.createdBy.name}</p>
+      {isOwnerOrAdmin && (
+        <div className={`specs-button-container ${theme}`}>
+          <button className={`edit-specs-button ${theme}`} onClick={() => navigate(`/car-specs/edit/${specs.carId._id}`)}>
+            Редагувати характеристики
+          </button>
+          <button className={`edit-specs-button ${theme}`}>Видалити характеристики</button>
+        </div>
+      )}
 
       {specs.fuelType && (
         <div className="specs-section">
-        {specs.fuelType === "бензин" || specs.fuelType === "дизель" ? (
-          <div className={`specs-box ${theme}`}>
-            <p>
-              <strong>Об'єм двигуна:</strong> {specs.combustionEngine?.engineDisplacement ?? "Немає даних"} л
-            </p>
-            <p>
-              <strong>Потужність:</strong> {specs.combustionEngine?.horsepower ?? "Немає даних"} к. с.
-            </p>
+          {specs.fuelType === "бензин" || specs.fuelType === "дизель" ? (
+            <div className={`specs-box ${theme}`}>
               <p>
-                <strong>Крутний момент:</strong> {specs.combustionEngine?.torque ?? "Немає даних"} Нм
-              {/* <strong>Крутний момент:</strong> {specs.combustionEngine?.torque}{" "} */}
-            </p>
-            <p>
-              <strong>Витрата пального:</strong> {specs.combustionEngine?.fuelConsumption ?? "Немає даних"} л/100км
-            </p>
-            <p>
-              <strong>Коробка передач:</strong> {specs.combustionEngine?.transmission ?? "Немає даних"}
-            </p>
-          </div>
-        ) : specs.fuelType === "гібрид" ? (
-          <div className={`specs-box ${theme}`}>
-            <p>
-              <strong>Тип гібрида:</strong> {specs.hybrid?.hybridType ?? "Немає даних"}
-            </p>
-            <p>
-              <strong>Об'єм двигуна:</strong> {specs.hybrid?.engineDisplacement ?? "Немає даних"} л
-            </p>
-            <p>
-              <strong>Потужність електромотора:</strong> {specs.hybrid?.electricMotorPower ?? "Немає даних"} кВт
-            </p>
-            <p>
-              <strong>Загальна потужність:</strong> {specs.hybrid?.totalHorsepower ?? "Немає даних"} к.с.
-            </p>
-            <p>
-              <strong>Запас ходу на електро:</strong> {specs.hybrid?.electricRange ?? "Немає даних"} км
-            </p>
-          </div>
-        ) : specs.fuelType === "електро" ? (
-          <div className={`specs-box ${theme}`}>
-            <p>
-              <strong>Ємність батареї:</strong>{" "}
-              {specs.electric?.batteryCapacity ?? "Немає даних"} кВт⋅год
-            </p>
-            <p>
-              <strong>Запас ходу:</strong> {specs.electric?.range ?? "Немає даних"} км
-            </p>
-            <p>
-              <strong>Потужність електромотора:</strong>{" "}
-              {specs.electric?.electricMotorPower ?? "Немає даних"} кВт
-            </p>
-            <p>
-              <strong>Час зарядки:</strong> {specs.electric?.chargeTime ?? "Немає даних"}
-            </p>
-            <p>
-              <strong>Тип зарядного роз'єму:</strong>{" "}
-              {specs.electric?.chargePort ?? "Немає даних"}
-            </p>
-          </div>
-        ) : (
-          <p className="no-data">Немає даних</p>
-        )}
-      </div>
+                <strong>Об'єм двигуна:</strong>{" "}
+                {specs.combustionEngine?.engineDisplacement ?? "Немає даних"} л
+              </p>
+              <p>
+                <strong>Потужність:</strong>{" "}
+                {specs.combustionEngine?.horsepower ?? "Немає даних"} к. с.
+              </p>
+              <p>
+                <strong>Крутний момент:</strong>{" "}
+                {specs.combustionEngine?.torque ?? "Немає даних"} Нм
+                {/* <strong>Крутний момент:</strong> {specs.combustionEngine?.torque}{" "} */}
+              </p>
+              <p>
+                <strong>Витрата пального:</strong>{" "}
+                {specs.combustionEngine?.fuelConsumption ?? "Немає даних"}{" "}
+                л/100км
+              </p>
+              <p>
+                <strong>Коробка передач:</strong>{" "}
+                {specs.combustionEngine?.transmission ?? "Немає даних"}
+              </p>
+            </div>
+          ) : specs.fuelType === "гібрид" ? (
+            <div className={`specs-box ${theme}`}>
+              <p>
+                <strong>Тип гібрида:</strong>{" "}
+                {specs.hybrid?.hybridType ?? "Немає даних"}
+              </p>
+              <p>
+                <strong>Об'єм двигуна:</strong>{" "}
+                {specs.hybrid?.engineDisplacement ?? "Немає даних"} л
+              </p>
+              <p>
+                <strong>Потужність електромотора:</strong>{" "}
+                {specs.hybrid?.electricMotorPower ?? "Немає даних"} кВт
+              </p>
+              <p>
+                <strong>Загальна потужність:</strong>{" "}
+                {specs.hybrid?.totalHorsepower ?? "Немає даних"} к.с.
+              </p>
+              <p>
+                <strong>Запас ходу на електро:</strong>{" "}
+                {specs.hybrid?.electricRange ?? "Немає даних"} км
+              </p>
+            </div>
+          ) : specs.fuelType === "електро" ? (
+            <div className={`specs-box ${theme}`}>
+              <p>
+                <strong>Ємність батареї:</strong>{" "}
+                {specs.electric?.batteryCapacity ?? "Немає даних"} кВт⋅год
+              </p>
+              <p>
+                <strong>Запас ходу:</strong>{" "}
+                {specs.electric?.range ?? "Немає даних"} км
+              </p>
+              <p>
+                <strong>Потужність електромотора:</strong>{" "}
+                {specs.electric?.electricMotorPower ?? "Немає даних"} кВт
+              </p>
+              <p>
+                <strong>Час зарядки:</strong>{" "}
+                {specs.electric?.chargeTime ?? "Немає даних"}
+              </p>
+              <p>
+                <strong>Тип зарядного роз'єму:</strong>{" "}
+                {specs.electric?.chargePort ?? "Немає даних"}
+              </p>
+            </div>
+          ) : (
+            <p className="no-data">Немає даних</p>
+          )}
+        </div>
       )}
-      
 
-      {specs.additionalSpecs && Object.keys(specs.additionalSpecs).length > 0 && (
-        <div className={`additional-specs ${theme}`}>
-        <h3>Додаткові характеристики</h3>
-        {Object.keys(specs.additionalSpecs).length > 0 ? (
-          <ul>
-            {Object.entries(specs.additionalSpecs).map(([key, value]) => (
-              <li key={key}>
-                <strong>{key}:</strong> {value}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="no-data">Немає додаткових характеристик.</p>
+      {specs.additionalSpecs &&
+        Object.keys(specs.additionalSpecs).length > 0 && (
+          <div className={`additional-specs ${theme}`}>
+            <h3>Додаткові характеристики</h3>
+            {Object.keys(specs.additionalSpecs).length > 0 ? (
+              <ul>
+                {Object.entries(specs.additionalSpecs).map(([key, value]) => (
+                  <li key={key}>
+                    <strong>{key}:</strong> {value}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="no-data">Немає додаткових характеристик.</p>
+            )}
+          </div>
         )}
-      </div>
-      )}
-      
 
       {specs.usefulLinks && specs.usefulLinks.length > 0 && (
         <div className={`useful-links ${theme}`}>
-        <h3>Корисні посилання</h3>
-        {specs.usefulLinks?.length > 0 ? (
-          <ul>
-            {specs.usefulLinks.map((link, index) => (
-              <li key={index}>
-                <a href={link.url} target="_blank" rel="noopener noreferrer">
-                  {link.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="no-data">Немає корисних посилань.</p>
-        )}
-      </div>
+          <h3>Корисні посилання</h3>
+          {specs.usefulLinks?.length > 0 ? (
+            <ul>
+              {specs.usefulLinks.map((link, index) => (
+                <li key={index}>
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    {link.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="no-data">Немає корисних посилань.</p>
+          )}
+        </div>
       )}
-      
     </div>
   );
 };
