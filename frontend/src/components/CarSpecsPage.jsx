@@ -47,9 +47,9 @@ const CarSpecsPage = () => {
       {isOwnerOrAdmin && (
         <div className={`specs-button-container ${theme}`}>
           <button className={`edit-specs-button ${theme}`} onClick={() => navigate(`/car-specs/edit/${specs.carId._id}`)}>
-            Редагувати характеристики
+            Редагувати характеристики ✏️
           </button>
-          <button className={`edit-specs-button ${theme}`}>Видалити характеристики</button>
+          <button className={`edit-specs-button ${theme}`}>Видалити характеристики ❌</button>
         </div>
       )}
 

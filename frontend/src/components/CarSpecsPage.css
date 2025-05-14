@@ -38,10 +38,26 @@
 .edit-specs-button.light {
   background-image: url("../assets/pexels-hngstrm-1939485.jpg");
   color: black;
+  transition: background 0.6s ease;
+  border: none;
+  /* transition: background-color 0.3s; */
+}
+
+.edit-specs-button.light:hover {
+  background-image: none;
+  background-color: grey;
+  color: white;
 }
 
 .edit-specs-button.dark {
   background-image: url("../assets/pexels-danielabsi-952670.jpg");
+  color: white;
+  /* transition: background 0.3s ease; */
+}
+
+.edit-specs-button.dark:hover {
+  background-image: none;
+  background-color: #555;
   color: white;
 }
 

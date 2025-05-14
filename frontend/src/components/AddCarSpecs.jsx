@@ -91,7 +91,7 @@ const AddCarSpecs = () => {
           </>
         )}
 
-        <button type="submit">Зберегти</button>
+        <button className="add-specs-button" type="submit">Зберегти</button>
       </form>
     </div>
   );

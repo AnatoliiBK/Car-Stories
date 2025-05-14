@@ -59,7 +59,7 @@ input:focus {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
-button {
+.add-specs-button {
     background-color: #007bff;
     color: white;
     padding: 12px;
@@ -70,11 +70,11 @@ button {
     transition: background-color 0.3s;
 }
 
-button:hover {
+.add-specs-button:hover {
     background-color: #0056b3;
 }
 
-button:focus {
+.add-specs-button:focus {
     outline: none;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }

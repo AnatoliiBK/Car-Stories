@@ -324,10 +324,10 @@ const EditCarSpecsPage = () => {
                 onChange={(e) => handleAdditionalChange(key, e.target.value)}
                 className={`area-specs ${theme}`}
               />
-              <button onClick={() => removeAdditionalSpec(key)}>🗑️</button>
+              <button className="delete-button" onClick={() => removeAdditionalSpec(key)}>🗑️</button>
             </div>
           ))}
-        <button onClick={addAdditionalSpec}>➕ Додати характеристику</button>
+        <button className="add-addit-specs-button" onClick={addAdditionalSpec}>➕ Додати характеристику</button>
       </div>
 
       <div className="section">
@@ -346,10 +346,10 @@ const EditCarSpecsPage = () => {
               onChange={(e) => handleLinkChange(index, "url", e.target.value)}
               className={`area-specs ${theme}`}
             />
-            <button onClick={() => removeLink(index)}>🗑️</button>
+            <button className="delete-button" onClick={() => removeLink(index)}>🗑️</button>
           </div>
         ))}
-        <button onClick={addLink}>➕ Додати посилання</button>
+        <button className="add-addit-specs-button" onClick={addLink}>➕ Додати посилання</button>
       </div>
 
       {message && <p className="message">{message}</p>}
