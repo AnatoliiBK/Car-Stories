@@ -12,6 +12,11 @@ function setupWebSocket(server) {
   io.on("connection", (socket) => {
     console.log("🔗 Новий клієнт підключився");
 
+    socket.on("join", (userId) => {
+      console.log("👤 Користувач приєднався до кімнати:", userId);
+      socket.join(userId); // ← Ось це головне
+    });
+
     // socket.on("viewed-car", (carId) => {
     //   console.log(`🚗 Авто переглянуте: ${carId}`);
     //   io.emit("viewed-car", carId); // 📡 Надсилаємо carId для точкового оновлення

@@ -31,6 +31,16 @@ input {
     box-sizing: border-box;
 }
 
+.input-error {
+    border: 2px solid red;
+    background-color: #ffeaea;
+}
+
+select.input-error {
+    border: 2px solid red;
+    background-color: #fff1f1;
+}
+
 .specs-form.light {
     color: #333;
 
@@ -47,6 +57,7 @@ input {
 
 label {
     font-weight: bold;
+    margin-bottom: 0;
     /* color: #444; */
 }
 
@@ -77,6 +88,73 @@ input:focus {
 .add-specs-button:focus {
     outline: none;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.add-spec-row,
+.add-link-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.add-button,
+.remove-button,
+.submit-button {
+    background-color: #2e7d32;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.remove-button {
+    background-color: #c62828;
+}
+
+.add-button:hover,
+.remove-button:hover,
+.submit-button:hover {
+    transform: scale(1.05);
+}
+
+.animated-list {
+    list-style: none;
+    padding: 0;
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+    margin-bottom: 0.5rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивність */
+@media (max-width: 768px) {
+
+    .add-spec-row input,
+    .add-link-row input {
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 425px) {
+    .specs-form {
+        padding: 0 1rem;
+    }
 }
 
 /* Адаптивність для 768px */

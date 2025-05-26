@@ -1,0 +1,27 @@
+.countdown-wrapper {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background-color: #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #2196f3);
+    transition: width 1s linear;
+}
+
+/* Зменшення на мобільних */
+@media (max-width: 425px) {
+    .progress-bar-container {
+        height: 5px;
+    }
+}

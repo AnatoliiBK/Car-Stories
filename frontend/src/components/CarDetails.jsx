@@ -70,15 +70,15 @@ const CarDetails = () => {
 
   const addToFavorites = async () => {
     try {
-      // було: `${url}/cars/${id}/favorites`, // URL для запиту
       await axios.post(
         `${url}/favorites/${id}`, // URL для запиту
         {}, // Тіло запиту (може бути порожнім)
         setHeaders() // Передаємо токен
       );
       setIsFavorite(true); // Змінюємо статус на "Улюблений"
-      // Надсилаємо подію WebSocket для оновлення лічильника улюблених
-      socket.emit("favorite-updated", { carId: id, isFavorite: true });
+      // Не надсилаємо подію WebSocket для оновлення лічильника улюблених, бо
+      // це робиться в контролері
+      // socket.emit("favorite-updated", { carId: id, isFavorite: true });
       alert("Автомобіль успішно додано в улюблені!");
 
       // console.log("RESPONSE ADD TO FAVORITE", response.data)
@@ -93,7 +93,9 @@ const CarDetails = () => {
     try {
       await axios.delete(`${url}/favorites/${id}`, setHeaders());
       setIsFavorite(false);
-      socket.emit("favorite-updated", { carId: id, isFavorite: false });
+      // Не надсилаємо подію WebSocket для оновлення лічильника улюблених, бо
+      // це робиться в контролері
+      // socket.emit("favorite-updated", { carId: id, isFavorite: false });
       alert("Автомобіль видалено з улюблених!");
     } catch (err) {
       console.error(err.response?.data || "Помилка сервера");

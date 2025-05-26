@@ -1,0 +1,22 @@
+.status {
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.status.pending {
+    color: gray;
+}
+
+.status.approved {
+    color: green;
+}
+
+.status.rejected {
+    color: crimson;
+}
+
+.countdown {
+    margin-left: 10px;
+    font-size: 0.9em;
+    color: #555;
+}

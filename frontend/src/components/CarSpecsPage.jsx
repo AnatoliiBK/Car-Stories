@@ -58,9 +58,14 @@ const CarSpecsPage = () => {
           {specs.fuelType === "бензин" || specs.fuelType === "дизель" ? (
             <div className={`specs-box ${theme}`}>
               <p>
+                <strong>VIN-код:</strong>{" "}
+                {specs.vin ?? "Немає даних"}
+              </p>
+              <p>
                 <strong>Об'єм двигуна:</strong>{" "}
                 {specs.combustionEngine?.engineDisplacement ?? "Немає даних"} л
               </p>
+              <p></p>
               <p>
                 <strong>Потужність:</strong>{" "}
                 {specs.combustionEngine?.horsepower ?? "Немає даних"} к. с.

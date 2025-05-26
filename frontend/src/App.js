@@ -45,6 +45,7 @@ import EditCarSpecsPage from "./components/EditCarSpecsPage";
 import MyCarsList from "./components/MyCarsList";
 import CarSearchBar from "./components/CarSearchBar";
 import FilteredCarsPage from "./components/FilteredCarsPage";
+import PermissionRequestsPage from "./components/PermissionRequestsPage";
 
 const AppContent = () => {
   const { theme } = useTheme();
@@ -105,6 +106,10 @@ const AppContent = () => {
                 />
 
                 <Route path="/cars/edit/:id" element={<EditCarPage />} />
+                <Route
+                  path="/my-requests"
+                  element={<PermissionRequestsPage />}
+                />
 
                 <Route path="/home" element={<Home />} />
                 <Route path="/details" element={<Details />} />

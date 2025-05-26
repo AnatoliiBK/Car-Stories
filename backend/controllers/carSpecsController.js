@@ -1,4 +1,6 @@
 const CarSpecs = require("../models/CarSpecsSchema");
+const Car = require("../models/Car");
+const PermissionRequest = require("../models/PermissionRequest");
 const { aiSearchFunction } = require("../utils/aiSearch");
 const bingSearchFunction = require("../utils/bingSearch");
 const { msnSearchFunction } = require("../utils/msnSearchCarSpecs");
@@ -119,20 +121,264 @@ const CACHE_EXPIRATION = 24 * 60 * 60 * 1000;
 // ✅ Додавання характеристик у базу
 exports.addCarSpecs = async (req, res) => {
   try {
-    const { carId, createdBy, ...rest } = req.body; // 🛠️ ОНОВЛЕНО: createdBy
-    // const specs = new CarSpecs(req.body);
+    const { carId, createdBy, ...rest } = req.body;
+
+    // 🔍 Перевірка існування авто
+    const car = await Car.findById(carId);
+    if (!car) return res.status(404).json({ message: "Авто не знайдено" });
+
+    // 👤 Перевірка прав доступу: власник або адмін
+    const isOwner = car.createdBy.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      const existingRequest = await PermissionRequest.findOne({
+        carId,
+        requesterId: req.user._id,
+      });
+
+      if (!existingRequest || !existingRequest.approved) {
+        return res.status(403).json({
+          message: "Немає дозволу на додавання характеристик",
+        });
+      }
+    }
+
+    // 🆕 Створення нового документа CarSpecs
     const specs = new CarSpecs({
       carId,
-      createdBy,
-      // source: "manual",
-      source,
+      createdBy: req.user._id, // 👤 Автор — поточний користувач
       ...rest,
     });
+
     await specs.save();
     res.status(201).json(specs);
   } catch (error) {
     console.error("❌ Помилка додавання характеристик:", error);
     res.status(500).json({ error: "Не вдалося додати характеристики авто" });
+  }
+};
+// exports.addCarSpecs = async (req, res) => {
+//   try {
+//     const { carId, createdBy, ...rest } = req.body; // 🛠️ ОНОВЛЕНО: createdBy
+//     // const specs = new CarSpecs(req.body);
+//     const specs = new CarSpecs({
+//       carId,
+//       createdBy,
+//       // source: "manual",
+//       // source,
+//       ...rest,
+//     });
+//     await specs.save();
+//     res.status(201).json(specs);
+//   } catch (error) {
+//     console.error("❌ Помилка додавання характеристик:", error);
+//     res.status(500).json({ error: "Не вдалося додати характеристики авто" });
+//   }
+// };
+
+exports.getPermissionRequestsList = async (req, res) => {
+  try {
+    //витягує список автомобілів, створених поточним користувачем (req.user._id)
+    const myCars = await Car.find({ createdBy: req.user._id }).select("_id");
+
+    const requests = await PermissionRequest.find({
+      //🔹 Шукає всі об'є'кти, де carId входить ($in) до списку myCars (значення carId співпадає з ідентифікатлрами автомобілів зі списку myCars)
+      carId: { $in: myCars.map((c) => c._id) },
+    })
+      .populate("carId", "name brand year") //2️⃣ .populate("carId", "name brand year")
+      //  🔹 Автоматично замінює carId об'єктом із даними про авто (name, brand, year).
+      .populate("requesterId", "name email");
+
+    const showIcon = requests.some((r) => r.approved !== null);
+    if (req.app.locals.io) {
+      const io = req.app.locals.io;
+
+      io.to(req.user._id.toString()).emit("permission-requests-updated", {
+        userId: req.user._id.toString(),
+        showIcon,
+      });
+    }
+
+    // res.status(200).json(requests);
+    res.status(200).json({
+      requests,
+      showIcon,
+    });
+  } catch (error) {
+    console.error("❌ Помилка отримання списку запитів:", error);
+    res.status(500).json({ error: "Не вдалося отримати список запитів" });
+  }
+};
+
+exports.getPermissionRequestStatus = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Пошук запитів до авто користувача (власника)
+    const userCarRequests = await PermissionRequest.find()
+      .populate("carId", "createdBy") // беремо лише createdBy
+      .lean();
+
+    // Фільтруємо ті, які стосуються авто поточного користувача
+    const relevantRequests = userCarRequests.filter(
+      (req) => req.carId?.createdBy?.toString() === userId.toString()
+    );
+
+    const showIcon = relevantRequests.some((r) => r.approved !== null);
+    if (req.app.locals.io) {
+      const io = req.app.locals.io;
+
+      io.to(req.user._id.toString()).emit("permission-requests-status", {
+        userId: req.user._id.toString(),
+        showIcon,
+      });
+    }
+
+    return res.json({
+      showIcon,
+    });
+  } catch (error) {
+    console.error("❌ Помилка отримання статусу запитів:", error);
+    res.status(500).json({ error: "Помилка сервера" });
+  }
+};
+
+exports.respondToPermissionRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approved } = req.body;
+
+    const request = await PermissionRequest.findById(id).populate("carId");
+
+    if (!request) return res.status(404).json({ message: "Запит не знайдено" });
+
+    // Перевірити, що поточний користувач — власник авто
+    if (request.carId.createdBy.toString() !== req.user._id) {
+      return res.status(403).json({ message: "Немає прав на зміну запиту" });
+    }
+
+    request.approved = approved;
+    if (approved) {
+      request.approvedAt = new Date(); // 👉 TTL на 24 години
+      request.rejectedAt = null; // про всяк випадок
+    } else {
+      request.rejectedAt = new Date(); // 👉 TTL на 12 годин
+      request.approvedAt = null; // про всяк випадок
+    }
+    await request.save();
+
+    // ✅ === 🔔 Надіслати повідомлення двом користувачам через WebSocket ===
+    if (req.app.locals.io) {
+      const io = req.app.locals.io;
+
+      // 🔵 1. Запитувачу (щоб він бачив відповідь на свій запит)
+      io.to(request.requesterId.toString()).emit("permission-request-updated", {
+        userId: request.requesterId.toString(), // userId того хто затвердив
+        requestId: request._id, // requestId того хто надіслав запит
+        approved,
+        carId: request.carId._id,
+        carName: request.carId.name,
+        carBrand: request.carId.brand,
+        carYear: request.carId.year,
+      });
+
+      // 🟢 2. Власнику авто (щоб оновився лічильник запитів у NavBar)
+      const allRequests = await PermissionRequest.find()
+        .populate("carId", "createdBy")
+        .lean();
+
+      const relevantRequests = allRequests.filter(
+        (r) => r.carId?.createdBy?.toString() === req.user._id.toString()
+      );
+
+      const showIcon = relevantRequests.some((r) => r.approved !== null);
+      io.to(req.user._id.toString()).emit("permission-request-updated", {
+        userId: req.user._id.toString(),
+        showIcon,
+      });
+    }
+
+    res.status(200).json({
+      message: approved ? "✅ Запит підтверджено" : "❌ Запит відхилено",
+      request: {
+        _id: request._id,
+        approved,
+        requesterId: request.requesterId,
+        carId: request.carId,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Помилка відповіді на запит:", error);
+    res.status(500).json({ error: "Не вдалося оновити запит" });
+  }
+};
+
+// ✅ /my-pending Отримання кількості запитів на дозвіл додавання х-к іншим користувачем (неопрацьовані)
+exports.getPermissionRequests = async (req, res) => {
+  try {
+    const myCars = await Car.find({ createdBy: req.user._id }).select("_id");
+
+    const myCarIds = myCars.map((car) => car._id);
+
+    const pendingRequests = await PermissionRequest.countDocuments({
+      carId: { $in: myCarIds },
+      approved: null,
+    });
+
+    res.status(200).json({ count: pendingRequests });
+  } catch (error) {
+    console.error("❌ Помилка отримання запитів:", error);
+    res.status(500).json({ error: "Не вдалося отримати запити" });
+  }
+};
+
+exports.createPermissionRequest = async (req, res) => {
+  try {
+    // Коли форма надсилає дані, сервер отримує їх у req.body
+    const { carId } = req.body;
+    // const { carId, requesterId } = req.body;
+    const requesterId = req.user._id; // 👈 безпечно та надійно
+
+    // Перевірка чи запит вже існує
+    const existingRequest = await PermissionRequest.findOne({
+      carId,
+      requesterId,
+    });
+
+    if (existingRequest) {
+      return res.status(200).json({
+        message: "📨 Запит вже надіслано",
+      });
+    }
+
+    const newRequest = new PermissionRequest({
+      carId,
+      requesterId,
+      // approved: false,
+    });
+
+    await newRequest.save();
+
+    // ✅ Надіслати власнику авто повідомлення про новий запит
+    const car = await Car.findById(carId).select("createdBy");
+    if (req.app.locals.io && car) {
+      req.app.locals.io
+        .to(car.createdBy.toString())
+        .emit("permission-request-added", {
+          carId,
+          requesterId,
+          requestId: newRequest._id,
+        });
+    }
+
+    res.status(201).json({
+      message: "📩 Запит на дозвіл надіслано власнику",
+      request: newRequest,
+    });
+  } catch (error) {
+    console.error("❌ Помилка створення запиту на дозвіл:", error);
+    res.status(500).json({ error: "Не вдалося надіслати запит" });
   }
 };
 

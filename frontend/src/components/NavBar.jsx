@@ -26,13 +26,17 @@ const NavBar = () => {
   const { theme } = useTheme();
   const [pendingCount, setPendingCount] = useState(0);
   const [favoritesCount, setFavoritesCount] = useState(0);
+  const [permissionRequestsCount, setPermissionRequestsCount] = useState(0);
+  const [showPermissionIcon, setShowPermissionIcon] = useState(false);
 
-  console.log("AUTH FROM USE SELECTOR : ", auth);
-  console.log("USERS LIST:", usersList);
+  console.log("AUTH IN NAV BAR : ", auth);
+  console.log("USERS LIST IN NAV BAR:", usersList);
+  console.log("PERMISSION DATA IN NAV BAR: ", permissionRequestsCount);
 
   const user = usersList?.find((u) => u._id === auth._id);
 
-  console.log("USER FRON USER LIST : ", user);
+  console.log("USER FRON USER LIST IN NAV BAR : ", user);
+  console.log("AUTH ID in Navbar socket useEffect:", auth?._id);
 
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -54,7 +58,7 @@ const NavBar = () => {
   const hamburgerRef = useRef(null);
   const imageRef = useRef(null);
 
-  // 🔹 Функція для отримання улюблених авто
+  // 🔹 Функція для отримання кількості улюблених авто
   const fetchFavoritesCount = async () => {
     try {
       const response = await axios.get(`${url}/favorites`, setHeaders());
@@ -87,19 +91,42 @@ const NavBar = () => {
     }
   }, [dispatch, user]);
 
-  // useEffect(() => {
-  //   if (user && user._id) {
-  //     setUserAvatar(user?.avatar || ""); // Завантажуємо аватар, тільки якщо користувач залогінений
-  //     // dispatch(fetchCart(user._id));
-  //     // dispatch(fetchTotals(user._id));
+  const fetchAllRequests = async () => {
+    try {
+      const res = await axios.get(`${url}/car-specs/status`, setHeaders()); // 🔁 Ендпоінт для поточного користувача
+      console.log("FETCH ALL REQUESTS IN NAV BAR : ", res.data.showIcon)
+      setShowPermissionIcon(res.data.showIcon);
+    } catch (error) {
+      console.error("❌ Не вдалося отримати запити на дозвіл:", error);
+    } finally {
+      setIsLoading(false); // Завантаження завершено
+    }
+  };
 
-  //     // Перевіряємо, чи є товари в кошику і лише тоді як є спрацьовуватимуть функції
-  //     if (cartTotalQuantity > 0) {
-  //       dispatch(fetchCart(user._id));
-  //       dispatch(fetchTotals(user._id));
-  //     }
-  //   }
-  // }, [auth._id, dispatch, user, cartTotalQuantity]);
+  useEffect(() => {
+    if (auth._id) {
+      fetchAllRequests();
+    }
+  }, [auth._id]);
+
+  // 🔹 Функція для отримання кількості х-к авто, які очікують затв. чи відх.
+  const fetchPermissionRequests = async () => {
+    try {
+      const res = await axios.get(`${url}/car-specs/my-pending`, setHeaders()); // 🔁 Ендпоінт для поточного користувача
+      setPermissionRequestsCount(res.data.count);
+    } catch (error) {
+      console.error("❌ Не вдалося отримати запити на дозвіл:", error);
+    } finally {
+      setIsLoading(false); // Завантаження завершено
+    }
+  };
+  useEffect(() => {
+    if (auth._id) {
+      fetchPermissionRequests();
+    } else {
+      setPermissionRequestsCount(0);
+    }
+  }, [auth._id]);
 
   useEffect(() => {
     dispatch(usersFetch());
@@ -122,22 +149,13 @@ const NavBar = () => {
       }
     };
 
-    // // Функція для завантаження початкової кількості улюблених авто
-    // const fetchFavoritesCount = async () => {
-    //   try {
-    //     const response = await axios.get(`${url}/favorites`, setHeaders());
-    //     setFavoritesCount(response.data.length);
-    //   } catch (err) {
-    //     console.error("Помилка завантаження улюблених авто:", err);
-    //   }
-    // };
-
     fetchPendingCars(); // Виконуємо запит при завантаженні
-    // fetchFavoritesCount();
 
-    // Підключення до WebSocket
     const socket = io(url);
-
+    // ✅ NEW 18 06 25
+    if (auth?._id) {
+      socket.emit("join", auth._id); // Надсилаємо userId
+    }
     // 🔹 Коли додано новий автомобіль у список очікування (користувач надіслав авто)
     socket.on("pending-car-added", (newCar) => {
       setPendingCount((prev) => prev + 1);
@@ -160,41 +178,58 @@ const NavBar = () => {
       );
     });
 
+    socket.on("permission-requests-status", ({ userId, showIcon }) => {
+      if (userId === auth._id) {
+        console.log("🔔 Оновлення статусу запитів:", showIcon);
+        setShowPermissionIcon(showIcon);
+      }
+    });
+
+    // 🔹 Коли надіслано новий запит на дозвіл додати х-ки
+    socket.on("permission-request-added", ({ userId }) => {
+      if (userId === auth._id) {
+        setPermissionRequestsCount((prev) => prev + 1);
+      }
+    });
+
+    // 🔹 Коли запит на дозвіл додати х-ки підтверджено або відхилено
+    // socket.on("permission-request-updated", ({ userId }) => {
+    //   console.log("🔔 permission-request-updated отримано:", userId, auth._id);
+
+    //   if (userId === auth._id) {
+    //     setPermissionRequestsCount((prev) => Math.max(prev - 1, 0));
+    //   }
+    // });
+    socket.on("permission-request-updated", ({ userId, showIcon }) => {
+  console.log("🔔 permission-request-updated отримано:", userId, auth._id);
+
+  if (userId === auth._id) {
+    // 🔄 Оновлення лічильника (наприклад, зменшуємо)
+    setPermissionRequestsCount((prev) => Math.max(prev - 1, 0));
+
+    // ✅ Якщо сервер передав showIcon — оновлюємо стан для іконки
+    if (typeof showIcon === "boolean") {
+      setShowPermissionIcon(showIcon); // 👈 ти маєш створити/useState для цієї іконки
+    }
+  }
+});
+
+
     return () => {
       socket.off("pending-car-added");
       socket.off("new-car");
       socket.off("car-deleted");
       socket.off("favorite-updated");
+      socket.off("permission-request-added");
+      socket.off("permission-requests-status");
+      socket.off("permission-request-updated");
+
       socket.disconnect(); // Відключаємо WebSocket при розмонтуванні
     };
-  }, []);
-
-  // тут не працює закриття випливаючого меню кліком поза меню оскільки не завжди
-  // об'єкт imageRef.current існує або є правильним елементом для перевірки кліку
-
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (
-  //       menuRef.current &&
-  //       !menuRef.current.contains(event.target) &&
-  //       !hamburgerRef.current.contains(event.target) &&
-  //       imageRef.current &&
-  //       !imageRef.current.contains(event.target)
-  //     ) {
-  //       setIsMenuOpen(false);
-  //       setIsImageModalOpen(false);
-  //     }
-  //   };
-
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleClickOutside);
-  //   };
-  // }, []);
+  }, [auth._id]);
 
   useEffect(() => {
     const updatedUser = usersList?.find((u) => u._id === auth._id);
-    // setUserAvatar(updatedUser?.avatar || "");
     setNewName(updatedUser?.name || auth.name); // Оновлюємо локальне ім'я, якщо воно змінилося
   }, [usersList, auth._id, auth.name]);
 
@@ -224,7 +259,7 @@ const NavBar = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isImageModalOpen]); // Залежність від відкритого модального вікна
+  }, [isImageModalOpen]);
 
   const handleAvatarUpdate = (newAvatar) => {
     setUserAvatar(newAvatar); // Оновлюємо аватар після завантаження
@@ -256,8 +291,6 @@ const NavBar = () => {
 
   const handleNameUpdate = (newName) => {
     if (!user || !user._id) return;
-
-    // dispatch(updateUserName({ userId: user._id, name: newName }));
     dispatch(updateUserName({ userId: user._id, name: newName }))
       .unwrap() // Розгортає fulfilled/rejected для обробки результату
       .then(() => {
@@ -269,8 +302,8 @@ const NavBar = () => {
   };
 
   if (isLoading) {
-  return <div>Завантаження...</div>; // Показуємо лоадер, поки дані не отримані
-}
+    return <div>Завантаження...</div>;
+  }
 
   return (
     <nav className="nav-bar">
@@ -287,16 +320,6 @@ const NavBar = () => {
       {auth._id && cartTotalQuantity > 0 && (
         <NavLink to="/cart" className="desktop-menu">
           <CartWrapper theme={theme}>
-            {/* <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="35"
-              height="35"
-              // fill="currentColor"
-              className="bi bi-handbag-fill"
-              viewBox="0 0 16 16"
-            >
-              <path d="M8 1a2 2 0 0 0-2 2v2H5V3a3 3 0 1 1 6 0v2h-1V3a2 2 0 0 0-2-2zM5 5H3.36a1.5 1.5 0 0 0-1.483 1.277L.85 13.13A2.5 2.5 0 0 0 3.322 16h9.355a2.5 2.5 0 0 0 2.473-2.87l-1.028-6.853A1.5 1.5 0 0 0 12.64 5H11v1.5a.5.5 0 0 1-1 0V5H6v1.5a.5.5 0 0 1-1 0V5z" />
-            </svg> */}
             <HandbagIcon />
             <QuantityBadge>
               <span>{cartTotalQuantity}</span>
@@ -320,16 +343,6 @@ const NavBar = () => {
               {auth._id && cartTotalQuantity > 0 && (
                 <NavLink to="/cart" className="mobile-menu">
                   <CartWrapper theme={theme}>
-                    {/* <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      // fill="currentColor"
-                      className="bi bi-handbag-fill"
-                      viewBox="0 0 16 16"
-                    >
-                      <path d="M8 1a2 2 0 0 0-2 2v2H5V3a3 3 0 1 1 6 0v2h-1V3a2 2 0 0 0-2-2zM5 5H3.36a1.5 1.5 0 0 0-1.483 1.277L.85 13.13A2.5 2.5 0 0 0 3.322 16h9.355a2.5 2.5 0 0 0 2.473-2.87l-1.028-6.853A1.5 1.5 0 0 0 12.64 5H11v1.5a.5.5 0 0 1-1 0V5H6v1.5a.5.5 0 0 1-1 0V5z" />
-                    </svg> */}
                     <HandbagIcon />
                     <QuantityBadge>
                       <span>{cartTotalQuantity}</span>
@@ -341,27 +354,40 @@ const NavBar = () => {
             <div className="welcome-message">
               <img
                 src={userAvatar || placeholderAvatar}
-                // src={user?.avatar}
                 alt="User Avatar"
                 className="user-avatar"
                 onClick={(event) => {
                   event.stopPropagation();
                   toggleImageModal();
-                }} // Відкриваємо модальне вікно зображення
+                }}
+                title="Редагувати зображення"
               />
               <span
                 onClick={(event) => {
                   event.stopPropagation();
                   toggleNameModal();
                 }}
+                title="Редагувати ім'я"
               >
                 {user?.name}
               </span>
+              {/* <Link to="/my-requests">
+                <span>🔹</span>
+              </Link> */}
+              {showPermissionIcon && (
+                <Link to="/my-requests" title="Переглянути запити на дозвіл">
+                  <span>🔹</span>
+                </Link>
+              )}
+              <Link to="/my-requests">
+                {permissionRequestsCount > 0 && (
+                  <span className="pending-badge small-badge">
+                    {permissionRequestsCount}
+                  </span>
+                )}
+              </Link>
             </div>
             {isAdmin && (
-              // <div>
-              //   <Link to="/admin/pending">Admin</Link>
-              // </div>
               <div>
                 <Link to="/admin/pending">
                   Admin{" "}
@@ -371,9 +397,6 @@ const NavBar = () => {
                 </Link>
               </div>
             )}
-            {/* <div>
-              <Link to="/favorites">Favorites</Link>
-            </div> */}
             <div>
               <Link to="/favorites">
                 Favorites{" "}
@@ -423,9 +446,6 @@ const NavBar = () => {
           <StyledPencil
             onClick={(event) => {
               event.stopPropagation(); // Зупиняємо розповсюдження події
-              // setTimeout(() => {
-              //   toggleAvatarForm(); // Відкриваємо форму завантаження аватара після затримки
-              // }, 200); // Затримка в 200 мілісекунд (0.2 секунди)
               toggleAvatarForm();
             }}
           >
@@ -461,8 +481,6 @@ const NavBar = () => {
               <SaveButton
                 theme={theme}
                 onClick={() => {
-                  // Логіка збереження нового імені
-                  // dispatch(updateUserName(newName)); // Виклик екшена для оновлення імені
                   handleNameUpdate(newName); // Викликаємо функцію оновлення імені
                   setIsNameEditOpen(false);
                 }}
@@ -471,40 +489,6 @@ const NavBar = () => {
               </SaveButton>
             </div>
           </ModalContent>
-          {/* <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()} // Зупиняємо поширення події, щоб клік поза вікном закривав його
-            theme={theme}
-          >
-            <h3>Edit Your Name</h3>
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Enter new name"
-              autoFocus
-            />
-            <div className="modal-actions">
-              <button
-                onClick={() => {
-                  setIsNameEditOpen(false);
-                  setNewName(auth.name); // Повертаємо старе ім'я, якщо зміна скасована
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  // Логіка збереження нового імені
-                  // dispatch(updateUserName(newName)); // Виклик екшена для оновлення імені
-                  handleNameUpdate(newName); // Викликаємо функцію оновлення імені
-                  setIsNameEditOpen(false);
-                }}
-              >
-                Save ✏️
-              </button>
-            </div>
-          </div> */}
         </div>
       )}
 
