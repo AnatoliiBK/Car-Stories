@@ -17,6 +17,7 @@ import axios from "axios";
 import { url, setHeaders } from "../slices/api";
 import HandbagIcon from "./icons/HandbagIcon";
 import ThemeButton from "./icons/ThemeButton";
+import permissionSound from "../sounds/notification 4.mp3"; // 🔊
 
 const NavBar = () => {
   const dispatch = useDispatch();
@@ -27,7 +28,10 @@ const NavBar = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [permissionRequestsCount, setPermissionRequestsCount] = useState(0);
+  const [permissionResponsesCount, setPermissionResponsesCount] = useState(0);
+
   const [showPermissionIcon, setShowPermissionIcon] = useState(false);
+  const permissionAudioRef = useRef(new Audio(permissionSound)); // 🔊
 
   console.log("AUTH IN NAV BAR : ", auth);
   console.log("USERS LIST IN NAV BAR:", usersList);
@@ -94,7 +98,7 @@ const NavBar = () => {
   const fetchAllRequests = async () => {
     try {
       const res = await axios.get(`${url}/car-specs/status`, setHeaders()); // 🔁 Ендпоінт для поточного користувача
-      console.log("FETCH ALL REQUESTS IN NAV BAR : ", res.data.showIcon)
+      console.log("FETCH ALL REQUESTS IN NAV BAR : ", res.data.showIcon);
       setShowPermissionIcon(res.data.showIcon);
     } catch (error) {
       console.error("❌ Не вдалося отримати запити на дозвіл:", error);
@@ -128,6 +132,27 @@ const NavBar = () => {
     }
   }, [auth._id]);
 
+  const fetchPermissionResponses = async () => {
+    try {
+      const res = await axios.get(
+        `${url}/car-specs/permission-responses`,
+        setHeaders()
+      );
+      console.log("RESPONSES PERMISSIONS IN NAV BAR", res);
+      setPermissionResponsesCount(res.data.responses.length);
+    } catch (error) {
+      console.error("❌ Не вдалося отримати відповіді на запити:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (auth._id) {
+      fetchPermissionResponses();
+    } else {
+      setPermissionResponsesCount(0);
+    }
+  }, [auth._id]);
+
   useEffect(() => {
     dispatch(usersFetch());
   }, [dispatch]);
@@ -154,6 +179,8 @@ const NavBar = () => {
     const socket = io(url);
     // ✅ NEW 18 06 25
     if (auth?._id) {
+      console.log("🔗 Клієнт приєднується до кімнати:", auth._id);
+
       socket.emit("join", auth._id); // Надсилаємо userId
     }
     // 🔹 Коли додано новий автомобіль у список очікування (користувач надіслав авто)
@@ -186,34 +213,59 @@ const NavBar = () => {
     });
 
     // 🔹 Коли надіслано новий запит на дозвіл додати х-ки
-    socket.on("permission-request-added", ({ userId }) => {
-      if (userId === auth._id) {
-        setPermissionRequestsCount((prev) => prev + 1);
-      }
+    socket.on("permission-request-added", (data) => {
+      console.log("📬 Подія надійшла:", data);
+      setPermissionRequestsCount((prev) => prev + 1);
     });
 
     // 🔹 Коли запит на дозвіл додати х-ки підтверджено або відхилено
-    // socket.on("permission-request-updated", ({ userId }) => {
+    socket.on("permission-request-updated", ({ userId, showIcon, ...data }) => {
+      console.log("🔔 permission-request-updated отримано:", userId, auth._id);
+
+      if (userId === auth._id) {
+        // Якщо showIcon присутній, це подія для власника авто
+        if (typeof showIcon === "boolean") {
+          // if (showIcon !== undefined) {
+          setShowPermissionIcon(showIcon); // Оновлюємо стан іконки для власника
+          // Не оновлюємо лічильник відповідей, бо це не для запитувача
+        } else {
+          // Подія для запитувача (немає showIcon)
+          setPermissionResponsesCount((prev) => prev + 1); // Збільшуємо лічильник відповідей
+          // 🔊 Відтворення звуку
+          if (permissionAudioRef.current) {
+            permissionAudioRef.current.currentTime = 0;
+            permissionAudioRef.current.play().catch((err) => {
+              console.warn("🔈 Помилка відтворення аудіо:", err);
+            });
+          }
+        }
+
+        // Оновлення лічильника запитів (для обох користувачів, якщо потрібно)
+        setPermissionRequestsCount((prev) => Math.max(prev - 1, 0));
+      }
+    });
+
+    // socket.on("permission-response-deleted", fetchPermissionResponses);
+    socket.on("permission-response-deleted", (data) => {
+      if (data.userId === auth._id) {
+        // Зменшити лічильник
+        fetchPermissionResponses(); // або фетч нової кількості
+      }
+    });
+    // socket.on("permission-request-updated", ({ userId, showIcon }) => {
     //   console.log("🔔 permission-request-updated отримано:", userId, auth._id);
 
     //   if (userId === auth._id) {
+    //     // 🔄 Оновлення лічильника (наприклад, зменшуємо)
     //     setPermissionRequestsCount((prev) => Math.max(prev - 1, 0));
+    //     setPermissionResponsesCount((prev) => prev + 1);
+
+    //     // ✅ Якщо сервер передав showIcon — оновлюємо стан для іконки
+    //     if (typeof showIcon === "boolean") {
+    //       setShowPermissionIcon(showIcon); // 👈 ти маєш створити/useState для цієї іконки
+    //     }
     //   }
     // });
-    socket.on("permission-request-updated", ({ userId, showIcon }) => {
-  console.log("🔔 permission-request-updated отримано:", userId, auth._id);
-
-  if (userId === auth._id) {
-    // 🔄 Оновлення лічильника (наприклад, зменшуємо)
-    setPermissionRequestsCount((prev) => Math.max(prev - 1, 0));
-
-    // ✅ Якщо сервер передав showIcon — оновлюємо стан для іконки
-    if (typeof showIcon === "boolean") {
-      setShowPermissionIcon(showIcon); // 👈 ти маєш створити/useState для цієї іконки
-    }
-  }
-});
-
 
     return () => {
       socket.off("pending-car-added");
@@ -223,6 +275,7 @@ const NavBar = () => {
       socket.off("permission-request-added");
       socket.off("permission-requests-status");
       socket.off("permission-request-updated");
+      socket.off("permission-response-deleted");
 
       socket.disconnect(); // Відключаємо WebSocket при розмонтуванні
     };
@@ -371,14 +424,34 @@ const NavBar = () => {
               >
                 {user?.name}
               </span>
-              {/* <Link to="/my-requests">
-                <span>🔹</span>
-              </Link> */}
+
               {showPermissionIcon && (
-                <Link to="/my-requests" title="Переглянути запити на дозвіл">
+                <Link
+                  to="/my-requests"
+                  title="Переглянути запити на дозвіл"
+                  onClick={() => {
+                    if (auth._id) {
+                      fetchAllRequests(); // 🔁 отримати запити лише при кліку
+                    }
+                  }}
+                >
                   <span>🔹</span>
                 </Link>
               )}
+              <Link
+                to="/permission-response"
+                title="Переглянути відповіді на ваші запити"
+              >
+                {permissionResponsesCount > 0 && (
+                  <>
+                    <span>📨</span>
+                    <span className="response-count">
+                      {permissionResponsesCount}
+                    </span>
+                  </>
+                )}
+              </Link>
+
               <Link to="/my-requests">
                 {permissionRequestsCount > 0 && (
                   <span className="pending-badge small-badge">

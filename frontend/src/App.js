@@ -46,6 +46,7 @@ import MyCarsList from "./components/MyCarsList";
 import CarSearchBar from "./components/CarSearchBar";
 import FilteredCarsPage from "./components/FilteredCarsPage";
 import PermissionRequestsPage from "./components/PermissionRequestsPage";
+import PermissionResponsePage from "./components/PermissionResponsePage";
 
 const AppContent = () => {
   const { theme } = useTheme();
@@ -109,6 +110,10 @@ const AppContent = () => {
                 <Route
                   path="/my-requests"
                   element={<PermissionRequestsPage />}
+                />
+                <Route
+                  path="/permission-response"
+                  element={<PermissionResponsePage />}
                 />
 
                 <Route path="/home" element={<Home />} />

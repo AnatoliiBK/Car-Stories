@@ -3,12 +3,16 @@ import axios from "axios";
 import { url, setHeaders } from "../slices/api";
 import { io } from "socket.io-client";
 import CountdownTimer from "./CountdownTimer";
+import { useSelector } from "react-redux";
 
-// const socket = io(url);
+const socket = io(url);
+// // 🔌 Ініціалізуємо socket
+// const socket = io(url, { transports: ["websocket"] });
 
 const PermissionRequestsPage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const userId = useSelector((state) => state.auth._id); // ← напряму з Redux
 
   const fetchRequests = async () => {
     try {
@@ -16,9 +20,9 @@ const PermissionRequestsPage = () => {
         `${url}/car-specs/permission-requests`,
         setHeaders()
       );
-      console.log("FETCH ALL REQUESTS LIST : ", res.data)
+      console.log("FETCH ALL REQUESTS LIST : ", res.data);
       // setRequests(res.data);
-      setRequests(res.data.requests)
+      setRequests(res.data.requests);
     } catch (error) {
       console.error("Помилка завантаження запитів:", error);
     } finally {
@@ -26,6 +30,7 @@ const PermissionRequestsPage = () => {
     }
   };
 
+  // ✅ Дозвіл / Відхилення
   const handleResponse = async (id, approved) => {
     try {
       const res = await axios.patch(
@@ -33,27 +38,41 @@ const PermissionRequestsPage = () => {
         { approved },
         setHeaders()
       );
-  
+
       // 🔄 Локально оновлюємо стан після успішної відповіді
       const updatedRequest = res.data.request;
       setRequests((prev) =>
         prev.map((req) =>
-          req._id === updatedRequest._id ? { ...req, approved: updatedRequest.approved } : req
+          req._id === updatedRequest._id
+            ? { ...req, approved: updatedRequest.approved }
+            : req
         )
       );
-  
+
       alert(approved ? "Автомобіль затверджено" : "Запит відхилено");
     } catch (error) {
       console.error("Помилка відповіді на запит:", error);
     }
   };
-  
-    
-    useEffect(() => {
-        fetchRequests();
-    }, [])
 
+  useEffect(() => {
+    fetchRequests();
 
+    if (!userId) return;
+
+    socket.emit("join", userId); // Приєднання до кімнати
+
+    const handleNewPermissionRequest = (data) => {
+      console.log("📬 Подія надійшла:", data);
+      fetchRequests(); // Повторно отримуємо всі запити
+    };
+
+    socket.on("permission-request-added", handleNewPermissionRequest);
+
+    return () => {
+      socket.off("permission-request-added", handleNewPermissionRequest);
+    };
+  }, [userId]);
 
   if (loading) return <div>Завантаження...</div>;
 
@@ -63,51 +82,45 @@ const PermissionRequestsPage = () => {
       {requests.length === 0 ? (
         <p>Запитів немає.</p>
       ) : (
-          requests.map((req) => (
-            <div key={req._id} className="request-card">
-              <p>
-                <strong>{req.requesterId.name}</strong> просить дозволу додати
-                характеристики до авто:{" "}
-                <strong>
-                  {req.carId.brand} {req.carId.name} ({req.carId.year})
-                </strong>
-              </p>
-          
-              {/* Статус — 3 варіанти */}
-              <p>
-                Статус:{" "}
-                {/* {req.approved === true
-                  ? "✅ Підтверджено"
-                  : req.approved === false
-                  ? "❌ Відхилено"
-                  : "🕒 Очікує"} */}
-                {req.approved === true ? (
-    <span className="status approved">
-      ✅ Схвалено <CountdownTimer createdAt={req.updatedAt} />
-    </span>
-  ) : req.approved === false ? (
-    <span className="status rejected">❌ Відхилено</span>
-  ) : (
-    <span className="status pending">🕒 Очікує</span>
-  )}
-              </p>
-          
-              {/* Кнопки тільки якщо ще не підтверджено і не відхилено */}
-              {req.approved === null || req.approved === undefined ? (
-                <div>
-                  <button onClick={() => handleResponse(req._id, true)}>
-                    ✅ Дозволити
-                  </button>
-                  <button onClick={() => handleResponse(req._id, false)}>
-                    ❌ Відхилити
-                  </button>
-                </div>
+        requests.map((req) => (
+          <div key={req._id} className="request-card">
+            <p>
+              <strong>{req.requesterId.name}</strong> просить дозволу додати
+              характеристики до авто:{" "}
+              <strong>
+                {req.carId.brand} {req.carId.name} ({req.carId.year})
+              </strong>
+            </p>
+
+            {/* Статус — 3 варіанти */}
+            <p>
+              Статус:{" "}
+              {req.approved === true ? (
+                <span className="status approved">
+                  ✅ Схвалено <CountdownTimer createdAt={req.updatedAt} />
+                </span>
+              ) : req.approved === false ? (
+                <span className="status rejected">❌ Відхилено</span>
               ) : (
-                <p style={{ color: "gray" }}>Запит вже опрацьовано</p>
+                <span className="status pending">🕒 Очікує</span>
               )}
-            </div>
-          ))
-          
+            </p>
+
+            {/* Кнопки тільки якщо ще не підтверджено і не відхилено */}
+            {req.approved === null || req.approved === undefined ? (
+              <div>
+                <button onClick={() => handleResponse(req._id, true)}>
+                  ✅ Дозволити
+                </button>
+                <button onClick={() => handleResponse(req._id, false)}>
+                  ❌ Відхилити
+                </button>
+              </div>
+            ) : (
+              <p style={{ color: "gray" }}>Запит вже опрацьовано</p>
+            )}
+          </div>
+        ))
       )}
     </div>
   );

@@ -244,6 +244,33 @@ exports.getPermissionRequestStatus = async (req, res) => {
   }
 };
 
+exports.getMyPermissionResponses = async (req, res) => {
+  try {
+    const myResponses = await PermissionRequest.find({
+      requesterId: req.user._id,
+      approved: { $in: [true, false] }, // тільки ті, на які вже відповіли
+    })
+      .populate("carId", "name brand year")
+      .sort({ updatedAt: -1 });
+
+    const formatted = myResponses.map((r) => ({
+      _id: r._id,
+      approved: r.approved,
+      carId: r.carId._id,
+      carName: r.carId.name,
+      carBrand: r.carId.brand,
+      carYear: r.carId.year,
+      createdAt: r.createdAt,
+      timestamp: new Date(r.updatedAt).getTime(),
+    }));
+
+    res.status(200).json({ responses: formatted });
+  } catch (err) {
+    console.error("❌ Не вдалося отримати відповіді:", err);
+    res.status(500).json({ error: "Не вдалося завантажити відповіді" });
+  }
+};
+
 exports.respondToPermissionRequest = async (req, res) => {
   try {
     const { id } = req.params;
@@ -271,11 +298,12 @@ exports.respondToPermissionRequest = async (req, res) => {
     // ✅ === 🔔 Надіслати повідомлення двом користувачам через WebSocket ===
     if (req.app.locals.io) {
       const io = req.app.locals.io;
+      console.log("📤 Відправка оновлення до:", request.requesterId.toString());
 
       // 🔵 1. Запитувачу (щоб він бачив відповідь на свій запит)
       io.to(request.requesterId.toString()).emit("permission-request-updated", {
-        userId: request.requesterId.toString(), // userId того хто затвердив
-        requestId: request._id, // requestId того хто надіслав запит
+        userId: request.requesterId.toString(), // userId того хто надіслав запит і кому надіслати сповіщення
+        requestId: request._id, // requestId цлого об1єкту запиту
         approved,
         carId: request.carId._id,
         carName: request.carId.name,
@@ -311,6 +339,74 @@ exports.respondToPermissionRequest = async (req, res) => {
   } catch (error) {
     console.error("❌ Помилка відповіді на запит:", error);
     res.status(500).json({ error: "Не вдалося оновити запит" });
+  }
+};
+
+exports.clearPermissionResponses = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    console.log("🧾 USER ID в clearUserPermissionResponses:", userId);
+
+    // // Приклад: зробити approved/rejected запити "невидимими" для юзера
+    // await PermissionRequest.updateMany(
+    //   {
+    //     requesterId: userId,
+    //     approved: { $in: [true, false] },
+    //   },
+    //   { $unset: { approved: "", approvedAt: "", rejectedAt: "" } } // або будь-яка логіка очищення
+    // );
+
+    // Видаляємо всі документи, де requesterId відповідає userId і approved є true або false
+    const result = await PermissionRequest.deleteMany({
+      requesterId: userId,
+      approved: { $in: [true, false] },
+    });
+
+    if (req.app.locals.io) {
+      const io = req.app.locals.io;
+      io.emit("permission-response-deleted", { userId });
+    }
+
+    // res.status(200).json({ message: "Відповіді очищено" });
+    res.status(200).json({
+      message: "Відповіді очищено",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("❌ Помилка очищення відповідей:", error);
+    res.status(500).json({ error: "Не вдалося очистити відповіді" });
+  }
+};
+
+exports.deleteSinglePermissionResponse = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { id } = req.params;
+
+    console.log("🧾 USER ID:", userId);
+    console.log("🪪 ID param:", id);
+
+    const deleted = await PermissionRequest.findOneAndDelete({
+      _id: id,
+      requesterId: userId,
+      approved: { $in: [true, false] },
+    });
+
+    if (!deleted) {
+      return res
+        .status(404)
+        .json({ message: "Запис не знайдено або вже видалений" });
+    }
+
+    if (req.app.locals.io) {
+      const io = req.app.locals.io;
+      io.emit("permission-response-deleted", { userId });
+    }
+
+    res.status(200).json({ message: "Відповідь видалено" });
+  } catch (error) {
+    console.error("❌ Помилка при видаленні відповіді:", error);
+    res.status(500).json({ error: "Не вдалося видалити відповідь" });
   }
 };
 
@@ -362,6 +458,10 @@ exports.createPermissionRequest = async (req, res) => {
 
     // ✅ Надіслати власнику авто повідомлення про новий запит
     const car = await Car.findById(carId).select("createdBy");
+    console.log("🔍 Перевірка авто:", car);
+
+    console.log("📡 Еміт події до кімнати:", car.createdBy.toString());
+
     if (req.app.locals.io && car) {
       req.app.locals.io
         .to(car.createdBy.toString())
@@ -370,6 +470,7 @@ exports.createPermissionRequest = async (req, res) => {
           requesterId,
           requestId: newRequest._id,
         });
+      console.log("📡 Подія 'permission-request-added' надіслана");
     }
 
     res.status(201).json({
