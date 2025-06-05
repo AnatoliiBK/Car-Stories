@@ -53,22 +53,6 @@ const AddCarSpecsModal = ({ show, onClose, theme, car }) => {
     }
   };
 
-  // const handleMSNSearch = async () => {
-  //   try {
-  //     const response = await axios.post(`${url}/car-specs/msn-search`, {
-  //       make: car?.brand,
-  //       model: car?.name,
-  //       year: car?.year,
-  //       carId: car?._id,
-  //     });
-  //     console.log("Результати MSN:", response.data);
-  //     alert("Характеристики додано за допомогою MSN!");
-  //   } catch (error) {
-  //     console.error("Помилка при MSN пошуку:", error);
-  //     alert("Не вдалося отримати характеристики через MSN.");
-  //   }
-  // };
-
   const handleMSNSearch = async () => {
   try {
     const response = await axios.post(
@@ -145,7 +129,7 @@ const AddCarSpecsModal = ({ show, onClose, theme, car }) => {
         <button onClick={handleMSNSearch}>Автоматично (MSN)</button>
         <button onClick={handleAISearch}>Автоматично (AI)</button>
         <button onClick={handleViewOnWikipedia}>Переглянути у Wikipedia</button>
-        <button onClick={() => navigate(`/add-car-specs/${car._id}`)}>Вручну</button>
+        {/* <button onClick={() => navigate(`/add-car-specs/${car._id}`)}>Вручну</button> */}
         <button onClick={onClose}>Закрити</button>
       </div>
     </>

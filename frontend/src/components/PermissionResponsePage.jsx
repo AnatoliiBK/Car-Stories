@@ -5,12 +5,15 @@ import { url, setHeaders } from "../slices/api";
 import { motion, AnimatePresence } from "framer-motion";
 import "./PermissionResponsePage.css";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const socket = io(url);
 
 const PermissionResponsePage = () => {
   const auth = useSelector((state) => state.auth);
   const [responses, setResponses] = useState([]);
+  const navigate = useNavigate();
+
   console.log("AUTH IN RES PAGE", auth);
 
   useEffect(() => {
@@ -82,17 +85,17 @@ const PermissionResponsePage = () => {
           "Content-Type": "application/json",
         },
       });
-  
+
       if (!res.ok) throw new Error("Failed to delete");
-  
+
       setResponses((prev) => prev.filter((r) => r._id !== id));
-  
+
       socket.emit("permission-response-deleted", { userId: auth._id });
     } catch (err) {
       console.error("❌ Не вдалося видалити відповідь:", err);
     }
   };
-  
+
   //   const clearAll = () => setResponses([]);
   const clearAll = async () => {
     const confirmClear = window.confirm("Очистити всі сповіщення?");
@@ -147,13 +150,32 @@ const PermissionResponsePage = () => {
             <small>
               {new Date(resp.timestamp).toLocaleTimeString()} — нове сповіщення
             </small>
-            <button
+            <div className="response-actions">
+              {resp.approved && (
+                <button
+                  className="go-add-specs-btn"
+                  // onClick={() => navigate(`/add-car-specs/${resp.carId}`)}
+                  onClick={() => navigate(`/car-specs/add-by-request/${resp.carId}`, { state: { allowed: true } })
+                }
+                >
+                  ➕ Додати характеристики
+                </button>
+              )}
+              <button
+                className="delete-btn"
+                onClick={() => handleDeleteResponse(resp._id)}
+                title="Видалити повідомленн"
+              >
+                ❌
+              </button>
+            </div>
+            {/* <button
               className="delete-btn"
               // onClick={() => handleDeleteResponse(resp.createdAt)}
               onClick={() => handleDeleteResponse(resp._id)}
             >
               ❌
-            </button>
+            </button> */}
           </motion.div>
         ))}
       </AnimatePresence>

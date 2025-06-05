@@ -143,33 +143,14 @@ const CarDetails = () => {
       <div
         className={`specs-button-wrapper ${theme}`}
         onClick={() =>
-          carSpecs ? navigate(`/car-specs/${car._id}`) : setShowModal(true)
+          // carSpecs ? navigate(`/car-specs/${car._id}`) : setShowModal(true)
+          carSpecs ? navigate(`/car-specs/${car._id}`) : navigate(`/add-car-specs/${car._id}`)
         }
       >
         <button className={`specs-button ${theme}`}>
           {carSpecs ? "Дещо більше" : "Додати характеристики"}
         </button>
       </div>
-
-      {/* {carSpecs && (
-        <div className="specs-button-wrapper">
-          <button
-            className={`specs-button ${theme}`}
-            onClick={() => navigate(`/car-specs/${car._id}`)}
-          >
-            Дещо більше
-          </button>
-        </div>
-      )}
-
-      {!carSpecs && (
-        <div
-          className={`add-specs ${theme}`}
-          onClick={() => setShowModal(true)}
-        >
-          Додати характеристики
-        </div>
-      )} */}
 
       {/* Модальне вікно */}
       {showModal && (

@@ -47,6 +47,7 @@ import CarSearchBar from "./components/CarSearchBar";
 import FilteredCarsPage from "./components/FilteredCarsPage";
 import PermissionRequestsPage from "./components/PermissionRequestsPage";
 import PermissionResponsePage from "./components/PermissionResponsePage";
+import AddCarSpecsByRequest from "./components/AddCarSpecsByRequest";
 
 const AppContent = () => {
   const { theme } = useTheme();
@@ -114,6 +115,10 @@ const AppContent = () => {
                 <Route
                   path="/permission-response"
                   element={<PermissionResponsePage />}
+                />
+                <Route
+                  path="/car-specs/add-by-request/:carId"
+                  element={<AddCarSpecsByRequest />}
                 />
 
                 <Route path="/home" element={<Home />} />

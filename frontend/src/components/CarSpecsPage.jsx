@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { url } from "../slices/api";
+import { url, setHeaders } from "../slices/api";
 import "./CarSpecsPage.css";
 import { useTheme } from "../components/ThemeContext";
 import { useSelector } from "react-redux";
@@ -30,6 +30,22 @@ const CarSpecsPage = () => {
     fetchSpecs();
   }, [carId]);
 
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("Ви впевнені, що хочете видалити ці характеристики?");
+    if (!confirmDelete) return;
+
+    try {
+      console.log("Видалення характеристик за URL:", `${url}/car-specs/del/${specs._id}`);
+
+      await axios.delete(`${url}/car-specs/del/${specs._id}`, setHeaders());
+      alert("Характеристики успішно видалено.");
+      navigate("/cars"); // або будь-який інший маршрут
+    } catch (error) {
+      console.error("Помилка видалення характеристик:", error);
+      alert("Не вдалося видалити характеристики.");
+    }
+  };
+
   if (!specs) {
     return <p className="no-specs">Характеристики відсутні</p>;
   }
@@ -43,13 +59,13 @@ const CarSpecsPage = () => {
   return (
     <div className={`car-specs-container ${theme}`}>
       <h2 className="car-title">Дещо про авто {specs.carId.brand} {specs.carId.name} {specs.carId.year }</h2>
-      <p className="car-title">Доданний {specs.createdBy.name}</p>
+      <p className="car-title">Доданний {specs.carId.createdBy.name}</p>
       {isOwnerOrAdmin && (
         <div className={`specs-button-container ${theme}`}>
           <button className={`edit-specs-button ${theme}`} onClick={() => navigate(`/car-specs/edit/${specs.carId._id}`)}>
             Редагувати характеристики ✏️
           </button>
-          <button className={`edit-specs-button ${theme}`}>Видалити характеристики ❌</button>
+          <button className={`edit-specs-button ${theme}`} onClick={handleDelete}>Видалити характеристики ❌</button>
         </div>
       )}
 

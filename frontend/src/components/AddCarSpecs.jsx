@@ -7,6 +7,7 @@ import { useTheme } from "../components/ThemeContext";
 import "./AddCarSpecs.css";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
+import AddCarSpecsModal from "./AddCarSpecsModal";
 
 const initialSpecs = {
   vin: "",
@@ -20,7 +21,8 @@ const initialSpecs = {
   usefulLinks: [],
 };
 
-const AddCarSpecs = ({ onSuccess }) => {
+const AddCarSpecs = ({ onSuccess, bypassPermissions = false }) => {
+  const [car, setCar] = useState(null);
   const [specs, setSpecs] = useState(initialSpecs);
   const [message, setMessage] = useState("");
   const { theme } = useTheme();
@@ -29,8 +31,11 @@ const AddCarSpecs = ({ onSuccess }) => {
   const navigate = useNavigate();
 
   const [ownerId, setOwnerId] = useState(null);
-const isAdmin = useSelector((state) => state.auth.isAdmin); // додай в auth slice
-const [permissionRequested, setPermissionRequested] = useState(false);
+  const isAdmin = useSelector((state) => state.auth.isAdmin); // додай в auth slice
+  const [permissionRequested, setPermissionRequested] = useState(false);
+  const [showModal, setShowModal] = useState(false); // Стейт для показу модалки
+  // const canEdit = userId === ownerId || isAdmin;
+  const canEdit = bypassPermissions || userId === ownerId || isAdmin;
 
   console.log("car id in AddCarSpecs", carId);
   console.log("user id in AddCarSpecs", userId);
@@ -43,17 +48,18 @@ const [permissionRequested, setPermissionRequested] = useState(false);
   const messageRef = useRef(null);
 
   // завантаження власника авто
-useEffect(() => {
-  const fetchCarOwner = async () => {
-    try {
-      const res = await axios.get(`${url}/cars/${carId}`);
-      setOwnerId(res.data.createdBy);
-    } catch (err) {
-      console.error("Помилка при отриманні власника авто:", err);
-    }
-  };
-  fetchCarOwner();
-}, [carId]);
+  useEffect(() => {
+    const fetchCarOwner = async () => {
+      try {
+        const res = await axios.get(`${url}/cars/${carId}`);
+        setOwnerId(res.data.createdBy);
+        setCar(res.data);
+      } catch (err) {
+        console.error("Помилка при отриманні власника авто:", err);
+      }
+    };
+    fetchCarOwner();
+  }, [carId]);
 
   useEffect(() => {
     if (messageRef.current) {
@@ -199,295 +205,332 @@ useEffect(() => {
   return (
     <div className={`add-specs-container ${theme}`}>
       <h2>Додати технічні характеристики</h2>
+      <p>{car?.brand} {car?.name} ({car?.year})</p>
       {/* {message && <p className="status-message">{message}</p>} */}
 
       <form className={`specs-form ${theme}`} onSubmit={handleSubmit}>
-      {userId !== ownerId && !isAdmin ? (
-  <>
-    <p className="warning">❗️Лише власник авто або адміністратор може додавати характеристики.</p>
-    {!permissionRequested ? (
-      <button
-        type="button"
-        onClick={async () => {
-          try {
-            await axios.post(`${url}/car-specs/permission-request`, {
-              carId,
-              // requesterId: userId,
-            }, setHeaders());
-            setMessage("📩 Запит на дозвіл надіслано власнику.");
-            setPermissionRequested(true);
-          } catch (err) {
-            console.error(err);
-            setMessage("❌ Не вдалося надіслати запит.");
-          }
-        }}
-      >
-        Надіслати запит на дозвіл
-      </button>
-    ) : (
-      <p className="info">📨 Запит вже надіслано.</p>
-    )}
-  </>
-) : (
-  <button type="submit">Зберегти характеристики</button>
-)}
-
-        <label>
-          VIN:
-          <input
-            value={specs.vin}
-            onChange={(e) => setSpecs({ ...specs, vin: e.target.value })}
-            maxLength={17}
-            className={fieldErrors.vin ? "input-error" : ""}
-          />
-        </label>
-
-        <label>
-          Джерело:
-          <select
-            value={specs.source}
-            onChange={(e) => setSpecs({ ...specs, source: e.target.value })}
-          >
-            <option value="manual">manual</option>
-            <option value="auto-ria">auto-ria</option>
-            <option value="AI">AI</option>
-            <option value="bing">bing</option>
-            <option value="msn">msn</option>
-            <option value="gcs">gcs</option>
-            <option value="algolia">algolia</option>
-            <option value="nhtsa">nhtsa</option>
-          </select>
-        </label>
-
-        <label>
-          Тип двигуна:
-          <select
-            value={specs.fuelType}
-            onChange={(e) => setSpecs({ ...specs, fuelType: e.target.value })}
-          >
-            <option value="">Оберіть...</option>
-            <option value="бензин">Бензин</option>
-            <option value="дизель">Дизель</option>
-            <option value="гібрид">Гібрид</option>
-            <option value="електро">Електро</option>
-          </select>
-        </label>
-
-        {specs.fuelType === "бензин" || specs.fuelType === "дизель" ? (
+        {/* {userId !== ownerId && !isAdmin ? ( */}
+        {!canEdit ? (
           <>
-            <h4>Двигун</h4>
-            <label>Обʼєм (л):</label>
-            <input
-              type="number"
-              name="engineDisplacement"
-              onChange={handleFieldChange("combustionEngine")}
-            />
-            <label>Потужність (к.с.):</label>
-            <input
-              type="number"
-              name="horsepower"
-              onChange={handleFieldChange("combustionEngine")}
-            />
-            <label>Крутний момент (Нм):</label>
-            <input
-              type="number"
-              name="torque"
-              onChange={handleFieldChange("combustionEngine")}
-            />
-
-            <label>Витрата пального (л/100 км):</label>
-            <input
-              type="number"
-              name="fuelConsumption"
-              onChange={handleFieldChange("combustionEngine")}
-            />
-
-            <label>Коробка передач:</label>
-            <input
-              type="text"
-              name="transmission"
-              onChange={handleFieldChange("combustionEngine")}
-            />
-          </>
-        ) : specs.fuelType === "гібрид" ? (
-          <>
-            <h4>Гібридний двигун</h4>
-            <label>Тип:</label>
-            <input
-              type="text"
-              name="type"
-              onChange={handleFieldChange("hybrid")}
-            />
-
-            <label>Об'єм двигуна (л):</label>
-            <input
-              type="number"
-              name="engineDisplacement"
-              onChange={handleFieldChange("hybrid")}
-            />
-
-            <label>Витрата пального (л/100 км):</label>
-            <input
-              type="number"
-              name="fuelConsumption"
-              onChange={handleFieldChange("hybrid")}
-            />
-
-            <label>Потужність електромотора (кВт):</label>
-            <input
-              type="number"
-              name="electricMotorPower"
-              onChange={handleFieldChange("hybrid")}
-            />
-
-            <label>Загальна потужність (к.с.):</label>
-            <input
-              type="number"
-              name="totalHorsepower"
-              onChange={handleFieldChange("hybrid")}
-            />
-
-            <label>Запас ходу на електро (км):</label>
-            <input
-              type="number"
-              name="electricRange"
-              onChange={handleFieldChange("hybrid")}
-            />
-          </>
-        ) : specs.fuelType === "електро" ? (
-          <>
-            <h4>Електродвигун</h4>
-
-            <label>Ємність батареї (кВт⋅год):</label>
-            <input
-              type="number"
-              name="batteryCapacity"
-              onChange={handleFieldChange("electric")}
-            />
-
-            <label>Запас ходу (км):</label>
-            <input
-              type="number"
-              name="range"
-              onChange={handleFieldChange("electric")}
-            />
-
-            <label>Потужність електротяги (кВт):</label>
-            <input
-              type="number"
-              name="electricMotorPower"
-              onChange={handleFieldChange("electric")}
-            />
-
-            <label>Час зарядки:</label>
-            <input
-              type="text"
-              name="chargeTime"
-              onChange={handleFieldChange("electric")}
-            />
-
-            <label>Тип зарядного роз'єму:</label>
-            <input
-              type="text"
-              name="chargePort"
-              onChange={handleFieldChange("electric")}
-            />
-          </>
-        ) : null}
-
-        {/* 🔧 Можна додати додаткові характеристики, посилання тощо */}
-        <div className="additional-specs-section">
-          <h4>🔧 Додаткові характеристики</h4>
-          <div className="add-spec-row">
-            <input
-              type="text"
-              placeholder="Назва"
-              value={newSpecKey}
-              onChange={(e) => setNewSpecKey(e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="Значення"
-              value={newSpecValue}
-              onChange={(e) => setNewSpecValue(e.target.value)}
-            />
-            <button
-              type="button"
-              className="add-button"
-              onClick={handleAddSpec}
-            >
-              ➕
+            <p className="warning">
+              ❗️Лише власник авто або адміністратор може додавати
+              характеристики.
+            </p>
+            {!permissionRequested ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await axios.post(
+                      `${url}/car-specs/permission-request`,
+                      {
+                        carId,
+                        // requesterId: userId,
+                      },
+                      setHeaders()
+                    );
+                    setMessage("📩 Запит на дозвіл надіслано власнику.");
+                    setPermissionRequested(true);
+                  } catch (err) {
+                    console.error(err);
+                    setMessage("❌ Не вдалося надіслати запит.");
+                  }
+                }}
+              >
+                Надіслати запит на дозвіл
+              </button>
+            ) : (
+              <p className="info">📨 Запит вже надіслано.</p>
+            )}
+            <button className="back-button" onClick={() => navigate(-1)}>
+              ← Назад
             </button>
-          </div>
-          <ul className="animated-list">
-            {Object.entries(specs.additionalSpecs).map(([key, value]) => (
-              <li key={key} className="fade-in">
-                <strong>{key}:</strong> {value}
+          </>
+        ) : // <button type="submit">Зберегти характеристики</button>
+        null}
+
+        {canEdit ? (
+          <>
+            <div
+              className={`specs-button-wrapper ${theme}`}
+              // onClick={() =>
+              //   !canEdit ? navigate(`/car-specs/${carId}`) : setShowModal(true)
+              // }
+              onClick={() => setShowModal(true)}
+            >
+              <button type="button" className={`specs-button ${theme}`}>
+                Спробувати обраним ресурсом
+              </button>
+            </div>
+            {/* Модальне вікно */}
+            {showModal && (
+              <AddCarSpecsModal
+                show={showModal}
+                onClose={() => setShowModal(false)}
+                theme={theme}
+                car={car}
+              />
+            )}
+            <label>
+              VIN:
+              <input
+                value={specs.vin}
+                onChange={(e) => setSpecs({ ...specs, vin: e.target.value })}
+                maxLength={17}
+                className={fieldErrors.vin ? "input-error" : ""}
+              />
+            </label>
+
+            <label>
+              Джерело:
+              <select
+                value={specs.source}
+                onChange={(e) => setSpecs({ ...specs, source: e.target.value })}
+              >
+                <option value="manual">manual</option>
+                <option value="auto-ria">auto-ria</option>
+                <option value="AI">AI</option>
+                <option value="bing">bing</option>
+                <option value="msn">msn</option>
+                <option value="gcs">gcs</option>
+                <option value="algolia">algolia</option>
+                <option value="nhtsa">nhtsa</option>
+              </select>
+            </label>
+
+            <label>
+              Тип двигуна:
+              <select
+                value={specs.fuelType}
+                onChange={(e) =>
+                  setSpecs({ ...specs, fuelType: e.target.value })
+                }
+              >
+                <option value="">Оберіть...</option>
+                <option value="бензин">Бензин</option>
+                <option value="дизель">Дизель</option>
+                <option value="гібрид">Гібрид</option>
+                <option value="електро">Електро</option>
+              </select>
+            </label>
+
+            {specs.fuelType === "бензин" || specs.fuelType === "дизель" ? (
+              <>
+                <h4>Двигун</h4>
+                <label>Обʼєм (л):</label>
+                <input
+                  type="number"
+                  name="engineDisplacement"
+                  onChange={handleFieldChange("combustionEngine")}
+                />
+                <label>Потужність (к.с.):</label>
+                <input
+                  type="number"
+                  name="horsepower"
+                  onChange={handleFieldChange("combustionEngine")}
+                />
+                <label>Крутний момент (Нм):</label>
+                <input
+                  type="number"
+                  name="torque"
+                  onChange={handleFieldChange("combustionEngine")}
+                />
+
+                <label>Витрата пального (л/100 км):</label>
+                <input
+                  type="number"
+                  name="fuelConsumption"
+                  onChange={handleFieldChange("combustionEngine")}
+                />
+
+                <label>Коробка передач:</label>
+                <input
+                  type="text"
+                  name="transmission"
+                  onChange={handleFieldChange("combustionEngine")}
+                />
+              </>
+            ) : specs.fuelType === "гібрид" ? (
+              <>
+                <h4>Гібридний двигун</h4>
+                <label>Тип:</label>
+                <input
+                  type="text"
+                  name="type"
+                  onChange={handleFieldChange("hybrid")}
+                />
+
+                <label>Об'єм двигуна (л):</label>
+                <input
+                  type="number"
+                  name="engineDisplacement"
+                  onChange={handleFieldChange("hybrid")}
+                />
+
+                <label>Витрата пального (л/100 км):</label>
+                <input
+                  type="number"
+                  name="fuelConsumption"
+                  onChange={handleFieldChange("hybrid")}
+                />
+
+                <label>Потужність електромотора (кВт):</label>
+                <input
+                  type="number"
+                  name="electricMotorPower"
+                  onChange={handleFieldChange("hybrid")}
+                />
+
+                <label>Загальна потужність (к.с.):</label>
+                <input
+                  type="number"
+                  name="totalHorsepower"
+                  onChange={handleFieldChange("hybrid")}
+                />
+
+                <label>Запас ходу на електро (км):</label>
+                <input
+                  type="number"
+                  name="electricRange"
+                  onChange={handleFieldChange("hybrid")}
+                />
+              </>
+            ) : specs.fuelType === "електро" ? (
+              <>
+                <h4>Електродвигун</h4>
+
+                <label>Ємність батареї (кВт⋅год):</label>
+                <input
+                  type="number"
+                  name="batteryCapacity"
+                  onChange={handleFieldChange("electric")}
+                />
+
+                <label>Запас ходу (км):</label>
+                <input
+                  type="number"
+                  name="range"
+                  onChange={handleFieldChange("electric")}
+                />
+
+                <label>Потужність електротяги (кВт):</label>
+                <input
+                  type="number"
+                  name="electricMotorPower"
+                  onChange={handleFieldChange("electric")}
+                />
+
+                <label>Час зарядки:</label>
+                <input
+                  type="text"
+                  name="chargeTime"
+                  onChange={handleFieldChange("electric")}
+                />
+
+                <label>Тип зарядного роз'єму:</label>
+                <input
+                  type="text"
+                  name="chargePort"
+                  onChange={handleFieldChange("electric")}
+                />
+              </>
+            ) : null}
+
+            {/* 🔧 Можна додати додаткові характеристики, посилання тощо */}
+            <div className="additional-specs-section">
+              <h4>🔧 Додаткові характеристики</h4>
+              <div className="add-spec-row">
+                <input
+                  type="text"
+                  placeholder="Назва"
+                  value={newSpecKey}
+                  onChange={(e) => setNewSpecKey(e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="Значення"
+                  value={newSpecValue}
+                  onChange={(e) => setNewSpecValue(e.target.value)}
+                />
                 <button
                   type="button"
-                  className="remove-button"
-                  onClick={() => handleRemoveSpec(key)}
+                  className="add-button"
+                  onClick={handleAddSpec}
                 >
-                  ❌
+                  ➕
                 </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+              </div>
+              <ul className="animated-list">
+                {Object.entries(specs.additionalSpecs).map(([key, value]) => (
+                  <li key={key} className="fade-in">
+                    <strong>{key}:</strong> {value}
+                    <button
+                      type="button"
+                      className="remove-button"
+                      onClick={() => handleRemoveSpec(key)}
+                    >
+                      ❌
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        <div className="useful-links-section">
-          <h4>🔗 Корисні посилання</h4>
-          <div className="add-link-row">
-            <input
-              type="text"
-              placeholder="https://..."
-              value={newLink}
-              onChange={(e) => setNewLink(e.target.value)}
-            />
-            <button
-              type="button"
-              className="add-button"
-              onClick={handleAddLink}
-            >
-              ➕
-            </button>
-          </div>
-          <ul className="animated-list">
-            {specs.usefulLinks.map((link) => (
-              <li key={link} className="fade-in">
-                <a href={link} target="_blank" rel="noopener noreferrer">
-                  {link}
-                </a>
+            <div className="useful-links-section">
+              <h4>🔗 Корисні посилання</h4>
+              <div className="add-link-row">
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={newLink}
+                  onChange={(e) => setNewLink(e.target.value)}
+                />
                 <button
                   type="button"
-                  className="remove-button"
-                  onClick={() => handleRemoveLink(link)}
+                  className="add-button"
+                  onClick={handleAddLink}
                 >
-                  ❌
+                  ➕
                 </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-        {/* {message && <p className="status-message">{message}</p>} */}
-        {message && (
-          <div className="message fade-in" ref={messageRef}>
-            {message}
-          </div>
-        )}
+              </div>
+              <ul className="animated-list">
+                {specs.usefulLinks.map((link) => (
+                  <li key={link} className="fade-in">
+                    <a href={link} target="_blank" rel="noopener noreferrer">
+                      {link}
+                    </a>
+                    <button
+                      type="button"
+                      className="remove-button"
+                      onClick={() => handleRemoveLink(link)}
+                    >
+                      ❌
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {/* {message && <p className="status-message">{message}</p>} */}
+            {message && (
+              <div className="message fade-in" ref={messageRef}>
+                {message}
+              </div>
+            )}
 
-        <div className="buttons">
-          <button className="back-button" onClick={() => navigate(-1)}>
-            ← Назад
-          </button>
-          {/* <button className="save-button" onClick={handleSubmit}>
+            <div className="buttons">
+              <button className="back-button" onClick={() => navigate(-1)}>
+                ← Назад
+              </button>
+              {/* <button className="save-button" onClick={handleSubmit}>
           💾 Зберегти
         </button> */}
-        </div>
+            </div>
 
-        <button type="submit" className="submit-button">
-          💾 Зберегти
-        </button>
+            <button type="submit" className="submit-button">
+              💾 Зберегти
+            </button>
+          </>
+        ) : null}
       </form>
     </div>
   );

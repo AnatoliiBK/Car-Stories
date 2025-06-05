@@ -11,6 +11,10 @@ h2 {
     margin-bottom: 20px;
 }
 
+p {
+    text-align: center;
+}
+
 .specs-form {
     display: flex;
     flex-direction: column;

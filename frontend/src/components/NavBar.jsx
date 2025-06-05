@@ -431,7 +431,7 @@ const NavBar = () => {
                   title="Переглянути запити на дозвіл"
                   onClick={() => {
                     if (auth._id) {
-                      fetchAllRequests(); // 🔁 отримати запити лише при кліку
+                      fetchAllRequests(); // 🔁 отримати запити
                     }
                   }}
                 >

@@ -250,12 +250,13 @@ exports.getMyPermissionResponses = async (req, res) => {
       requesterId: req.user._id,
       approved: { $in: [true, false] }, // тільки ті, на які вже відповіли
     })
-      .populate("carId", "name brand year")
+      .populate("carId", "name brand year createdBy")
       .sort({ updatedAt: -1 });
 
     const formatted = myResponses.map((r) => ({
       _id: r._id,
       approved: r.approved,
+      ownerId: r.carId.createdBy,
       carId: r.carId._id,
       carName: r.carId.name,
       carBrand: r.carId.brand,
@@ -302,7 +303,8 @@ exports.respondToPermissionRequest = async (req, res) => {
 
       // 🔵 1. Запитувачу (щоб він бачив відповідь на свій запит)
       io.to(request.requesterId.toString()).emit("permission-request-updated", {
-        userId: request.requesterId.toString(), // userId того хто надіслав запит і кому надіслати сповіщення
+        userId: request.requesterId.toString(), // userId того хто надіслав запит тобто кому надіслати сповіщення
+        ownerId: request.carId.createdBy.toString(),
         requestId: request._id, // requestId цлого об1єкту запиту
         approved,
         carId: request.carId._id,
@@ -488,7 +490,15 @@ exports.getCarSpecs = async (req, res) => {
   try {
     // const specs = await CarSpecs.findOne({ carId: req.params.carId });
     const specs = await CarSpecs.findOne({ carId: req.params.carId })
-      .populate("carId", "brand name year")
+      // .populate("carId", "brand name year createdBy")
+      .populate({
+        path: "carId",
+        select: "brand name year createdBy",
+        populate: {
+          path: "createdBy",
+          select: "name email",
+        },
+      })
       .populate("createdBy", "name email"); // 🛠️ ОНОВЛЕНО
     if (!specs) {
       return res.status(404).json({ message: "Характеристики не знайдено" });
@@ -540,10 +550,10 @@ exports.updateCarSpecs = async (req, res) => {
 // 🆕 ВИДАЛЕННЯ характеристик
 exports.deleteCarSpecs = async (req, res) => {
   try {
-    const { carId } = req.params;
+    const { id } = req.params;
     // const { userId } = req.body;
 
-    const existingSpecs = await CarSpecs.findById(carId);
+    const existingSpecs = await CarSpecs.findById(id);
     if (!existingSpecs) {
       return res.status(404).json({ message: "Характеристики не знайдено" });
     }

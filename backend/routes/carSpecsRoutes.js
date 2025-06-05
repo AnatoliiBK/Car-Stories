@@ -45,7 +45,7 @@ router.patch("/permission-request/:id", auth, respondToPermissionRequest); // п
 router.delete("/clear-responses", auth, clearPermissionResponses);
 router.delete("/response/:id", auth, deleteSinglePermissionResponse);
 // ❗️ Загальні — в кінці
-router.delete("/:carId", auth, deleteCarSpecs);
+router.delete("/del/:id", auth, deleteCarSpecs);
 router.put("/:carId", auth, updateCarSpecs); // Оновлення специфікацій за _id
 
 module.exports = router;

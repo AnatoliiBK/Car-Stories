@@ -66,6 +66,27 @@
     color: gray;
 }
 
+.response-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    justify-content: space-between;
+}
+
+.delete-btn {
+    margin-left: auto;
+    background-color: transparent;
+}
+
+.go-add-specs-btn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
 /* Light / Dark Theme Variables */
 :root {
     --card-bg: #ffffff;
