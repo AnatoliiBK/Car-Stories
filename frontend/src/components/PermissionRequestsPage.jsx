@@ -4,6 +4,9 @@ import { url, setHeaders } from "../slices/api";
 import { io } from "socket.io-client";
 import CountdownTimer from "./CountdownTimer";
 import { useSelector } from "react-redux";
+import "./PermissionRequestsPage.css";
+import { useTheme } from "../components/ThemeContext";
+
 
 const socket = io(url);
 // // 🔌 Ініціалізуємо socket
@@ -13,6 +16,7 @@ const PermissionRequestsPage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const userId = useSelector((state) => state.auth._id); // ← напряму з Redux
+  const { theme } = useTheme();
 
   const fetchRequests = async () => {
     try {
@@ -44,7 +48,7 @@ const PermissionRequestsPage = () => {
       setRequests((prev) =>
         prev.map((req) =>
           req._id === updatedRequest._id
-            ? { ...req, approved: updatedRequest.approved }
+            ? { ...req, approved: updatedRequest.approved, updatedAt: new Date().toISOString(), }
             : req
         )
       );
@@ -76,54 +80,102 @@ const PermissionRequestsPage = () => {
 
   if (loading) return <div>Завантаження...</div>;
 
+  // return (
+  //   <div className="permission-requests-page">
+  //     <h2>Запити на дозвіл</h2>
+  //     {requests.length === 0 ? (
+  //       <p>Запитів немає.</p>
+  //     ) : (
+  //       requests.map((req) => (
+  //         <div key={req._id} className="request-card">
+  //           <p>
+  //             <strong>{req.requesterId.name}</strong> просить дозволу додати
+  //             характеристики до авто:{" "}
+  //             <strong>
+  //               {req.carId.brand} {req.carId.name} ({req.carId.year})
+  //             </strong>
+  //           </p>
+
+  //           {/* Статус — 3 варіанти */}
+  //           <p>
+  //             Статус:{" "}
+  //             {req.approved === true ? (
+  //               <span className="status approved">
+  //                 ✅ Схвалено <CountdownTimer createdAt={req.updatedAt} />
+  //               </span>
+  //             ) : req.approved === false ? (
+  //               <span className="status rejected">❌ Відхилено</span>
+  //             ) : (
+  //               <span className="status pending">🕒 Очікує</span>
+  //             )}
+  //           </p>
+
+  //           {/* Кнопки тільки якщо ще не підтверджено і не відхилено */}
+  //           {req.approved === null || req.approved === undefined ? (
+  //             <div>
+  //               <button onClick={() => handleResponse(req._id, true)}>
+  //                 ✅ Дозволити
+  //               </button>
+  //               <button onClick={() => handleResponse(req._id, false)}>
+  //                 ❌ Відхилити
+  //               </button>
+  //             </div>
+  //           ) : (
+  //             <p style={{ color: "gray" }}>Запит вже опрацьовано</p>
+  //           )}
+  //         </div>
+  //       ))
+  //     )}
+  //   </div>
+  // );
   return (
     <div className="permission-requests-page">
-      <h2>Запити на дозвіл</h2>
+      <h2 className="page-title">Запити на дозвіл</h2>
       {requests.length === 0 ? (
-        <p>Запитів немає.</p>
+        <p className="no-requests">Запитів немає.</p>
       ) : (
-        requests.map((req) => (
-          <div key={req._id} className="request-card">
-            <p>
-              <strong>{req.requesterId.name}</strong> просить дозволу додати
-              характеристики до авто:{" "}
-              <strong>
-                {req.carId.brand} {req.carId.name} ({req.carId.year})
-              </strong>
-            </p>
-
-            {/* Статус — 3 варіанти */}
-            <p>
-              Статус:{" "}
-              {req.approved === true ? (
-                <span className="status approved">
-                  ✅ Схвалено <CountdownTimer createdAt={req.updatedAt} />
-                </span>
-              ) : req.approved === false ? (
-                <span className="status rejected">❌ Відхилено</span>
+        <div className="requests-container">
+          {requests.map((req) => (
+            <div key={req._id} className="request-card">
+              <p className="request-text">
+                <strong>{req.requesterId.name}</strong> просить дозволу додати характеристики до авто:{" "}
+                <strong>
+                  {req.carId.brand} {req.carId.name} ({req.carId.year})
+                </strong>
+              </p>
+  
+              <p className="request-status">
+                Статус:{" "}
+                {req.approved === true ? (
+                  <span className={`status approved ${theme}`}>
+                    ✅ Схвалено <CountdownTimer createdAt={req.updatedAt} />
+                  </span>
+                ) : req.approved === false ? (
+                  <span className={`status rejected ${theme}`}>❌ Відхилено</span>
+                ) : (
+                  <span className={`status pending ${theme}`}>🕒 Очікує</span>
+                )}
+              </p>
+  
+              {req.approved === null || req.approved === undefined ? (
+                <div className="request-actions">
+                  <button className={`btn approve ${theme}`} onClick={() => handleResponse(req._id, true)}>
+                    ✅ Дозволити
+                  </button>
+                  <button className={`btn reject ${theme}`} onClick={() => handleResponse(req._id, false)}>
+                    ❌ Відхилити
+                  </button>
+                </div>
               ) : (
-                <span className="status pending">🕒 Очікує</span>
+                <p className="already-processed">Запит вже опрацьовано</p>
               )}
-            </p>
-
-            {/* Кнопки тільки якщо ще не підтверджено і не відхилено */}
-            {req.approved === null || req.approved === undefined ? (
-              <div>
-                <button onClick={() => handleResponse(req._id, true)}>
-                  ✅ Дозволити
-                </button>
-                <button onClick={() => handleResponse(req._id, false)}>
-                  ❌ Відхилити
-                </button>
-              </div>
-            ) : (
-              <p style={{ color: "gray" }}>Запит вже опрацьовано</p>
-            )}
-          </div>
-        ))
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
+  
 };
 
 export default PermissionRequestsPage;

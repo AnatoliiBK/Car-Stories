@@ -45,6 +45,7 @@ const PermissionResponsePage = () => {
         const newResponse = {
           ...data,
           createdAt: data.createdAt || new Date().toISOString(),
+          timestamp: Date.now(),
         };
         console.log("📬 Отримано дату:", newResponse);
         console.log("📬 Отримано повідомлення:", data);
@@ -56,8 +57,9 @@ const PermissionResponsePage = () => {
           setResponses((prev) =>
             prev.filter(
               (r) =>
-                String(new Date(r.createdAt).getTime()) !==
-                String(new Date(newResponse.createdAt).getTime())
+                // String(new Date(r.createdAt).getTime()) !==
+              // String(new Date(newResponse.createdAt).getTime())
+              prev.filter((r) => r.timestamp !== newResponse.timestamp)
             )
           );
         }, 15000);
@@ -169,13 +171,6 @@ const PermissionResponsePage = () => {
                 ❌
               </button>
             </div>
-            {/* <button
-              className="delete-btn"
-              // onClick={() => handleDeleteResponse(resp.createdAt)}
-              onClick={() => handleDeleteResponse(resp._id)}
-            >
-              ❌
-            </button> */}
           </motion.div>
         ))}
       </AnimatePresence>

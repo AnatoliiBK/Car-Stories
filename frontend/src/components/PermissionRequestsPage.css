@@ -1,4 +1,180 @@
-.status {
+/* ===== БАЗОВИЙ КОНТЕЙНЕР ===== */
+.permission-requests-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  /* ===== ЗАГОЛОВОК ===== */
+  .page-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+  }
+  
+  /* ===== ПОВІДОМЛЕННЯ ПРО ВІДСУТНІСТЬ ЗАПИТІВ ===== */
+  .no-requests {
+    text-align: center;
+    font-size: 1.2rem;
+  }
+  
+  /* ===== КОНТЕЙНЕР ЗАПИТІВ ===== */
+  .requests-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  /* ===== КАРТКА ЗАПИТУ ===== */
+  .request-card {
+    border-left: 5px solid #ccc;
+    border-radius: 8px;
+    padding: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.3s;
+  }
+  
+  .request-card:hover {
+    border-color: #007bff;
+  }
+  
+  /* ===== ТЕКСТИ ===== */
+  .request-text {
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+  }
+  
+  .request-status {
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+  
+  .already-processed {
+    color: gray;
+    font-style: italic;
+  }
+  
+  /* ===== СТАТУСИ ===== */
+  .status {
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  
+  .status.approved {
+    color: #155724;
+    background-color: #d4edda;
+  }
+  
+  .status.rejected {
+    color: #721c24;
+    background-color: #f8d7da;
+  }
+  
+  .status.pending {
+    color: #856404;
+    background-color: #fff3cd;
+  }
+  
+  /* ===== КНОПКИ ===== */
+  .request-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  /* ===== ТЕМИ ===== */
+  
+  /* --- СВІТЛА --- */
+  .page-title.light,
+  .no-requests.light,
+  .request-text.light,
+  .request-status.light {
+    color: #333;
+    background-color: transparent;
+  }
+  
+  .request-card.light {
+    background-color: #f9f9f9;
+  }
+  
+  .btn.approve.light {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .btn.approve.light:hover {
+    background-color: #218838;
+  }
+  
+  .btn.reject.light {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .btn.reject.light:hover {
+    background-color: #c82333;
+  }
+  
+  /* --- ТЕМНА --- */
+  .page-title.dark,
+  .no-requests.dark,
+  .request-text.dark,
+  .dark.request-status {
+    color: #f1f1f1;
+  }
+  
+  .request-card.dark {
+    background-color: #1f1f1f;
+    border-left-color: #444;
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.05);
+  }
+  
+  .btn.approve.dark {
+    background-color: #2e7d32;
+    color: white;
+  }
+  
+  .btn.approve.dark:hover {
+    background-color: #1b5e20;
+  }
+  
+  .btn.reject.dark {
+    background-color: #c62828;
+    color: white;
+  }
+  
+  .btn.reject.dark:hover {
+    background-color: #8e0000;
+  }
+  
+  .status.approved.dark {
+    background-color: #265c34;
+    color: #b7f0c1;
+  }
+  
+  .status.rejected.dark {
+    background-color: #5c2b2e;
+    color: #f5c6cb;
+  }
+  
+  .status.pending.dark {
+    background-color: #5c4c1b;
+    color: #ffe082;
+  }
+  
+
+
+/* .status {
     font-weight: bold;
     margin-top: 5px;
 }
@@ -19,4 +195,4 @@
     margin-left: 10px;
     font-size: 0.9em;
     color: #555;
-}
+} */

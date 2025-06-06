@@ -240,7 +240,7 @@ const AddCarSpecs = ({ onSuccess, bypassPermissions = false }) => {
                 Надіслати запит на дозвіл
               </button>
             ) : (
-              <p className="info">📨 Запит вже надіслано.</p>
+              <p className="info">📨 Запит надіслано.</p>
             )}
             <button className="back-button" onClick={() => navigate(-1)}>
               ← Назад

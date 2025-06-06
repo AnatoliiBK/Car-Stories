@@ -17,7 +17,7 @@ import axios from "axios";
 import { url, setHeaders } from "../slices/api";
 import HandbagIcon from "./icons/HandbagIcon";
 import ThemeButton from "./icons/ThemeButton";
-import permissionSound from "../sounds/notification 4.mp3"; // 🔊
+import permissionSound from "../sounds/livechat-129007.mp3"; // 🔊
 
 const NavBar = () => {
   const dispatch = useDispatch();
