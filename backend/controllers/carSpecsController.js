@@ -210,6 +210,62 @@ exports.getPermissionRequestsList = async (req, res) => {
     res.status(500).json({ error: "Не вдалося отримати список запитів" });
   }
 };
+// 🔸//🔹
+// exports.getPermissionRequestsList = async (req, res) => {
+//   try {
+//     // Витягує автомобілі, створені поточним користувачем
+//     const myCars = await Car.find({ createdBy: req.user._id }).select("_id");
+
+//     // Отримати всі запити на ці автомобілі
+//     const currentRequests = await PermissionRequest.find({
+//       carId: { $in: myCars.map((c) => c._id) },
+//     })
+//       .populate("carId", "name brand year")
+//       .populate("requesterId", "name email");
+
+//     // 🔸 Визначити, чи є схвалені/відхилені — для іконки
+//     const showIcon = currentRequests.some((r) => r.approved !== null);
+
+//     // 🔸 Отримати список ID, які знає клієнт
+//     const clientRequestIds = req.body?.knownRequestIds || []; // з фронту
+
+//     // 🔸 Поточні ID з бази
+//     const currentIds = currentRequests.map((r) => r._id.toString());
+
+//     // 🔸 Знайти застарілі (яких вже немає в базі)
+//     const expiredIds = clientRequestIds.filter(
+//       (id) => !currentIds.includes(id)
+//     );
+
+//     // 🔸 Відправити події через сокет
+//     if (req.app.locals.io) {
+//       const io = req.app.locals.io;
+
+//       // Оновлення значка (як і було)
+//       io.to(req.user._id.toString()).emit("permission-requests-updated", {
+//         userId: req.user._id.toString(),
+//         showIcon,
+//       });
+
+//       // Повідомлення про застарілі
+//       if (expiredIds.length > 0) {
+//         io.to(req.user._id.toString()).emit("permission-requests-expired", {
+//           expiredRequestIds: expiredIds,
+//         });
+//       }
+//     }
+
+//     // Повернути актуальні запити
+//     res.status(200).json({
+//       requests: currentRequests,
+//       showIcon,
+//     });
+//   } catch (error) {
+//     console.error("❌ Помилка отримання списку запитів:", error);
+//     res.status(500).json({ error: "Не вдалося отримати список запитів" });
+//   }
+// };
+// 🔸//🔹
 
 exports.getPermissionRequestStatus = async (req, res) => {
   try {

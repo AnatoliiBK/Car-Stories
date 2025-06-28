@@ -24,6 +24,12 @@ const PermissionRequestsPage = () => {
         `${url}/car-specs/permission-requests`,
         setHeaders()
       );
+      // const res = await axios.post(
+      //   `${url}/car-specs/permission-requests`,
+      //   { knownRequestIds: requests.map((r) => r._id) },
+      //   setHeaders()
+      // );
+      
       console.log("FETCH ALL REQUESTS LIST : ", res.data);
       // setRequests(res.data);
       setRequests(res.data.requests);
@@ -71,63 +77,31 @@ const PermissionRequestsPage = () => {
       fetchRequests(); // Повторно отримуємо всі запити
     };
 
+    // const handleExpiredRequests = (data) => {
+    //   console.log("🧹 Видаляємо застарілі запити:", data);
+    //   const { expiredRequestIds } = data;
+    //   setRequests((prev) =>
+    //     prev.filter((req) => !expiredRequestIds.includes(req._id))
+    //   );
+    // };
+    const handleExpiredRequests = (data) => {
+      console.log("🧹 Видалено:", data.expiredRequestIds);
+      setRequests((prev) =>
+        prev.filter((req) => !data.expiredRequestIds.includes(req._id))
+      );
+    };
+
     socket.on("permission-request-added", handleNewPermissionRequest);
+    socket.on("permission-requests-expired", handleExpiredRequests);
 
     return () => {
       socket.off("permission-request-added", handleNewPermissionRequest);
+      socket.off("permission-requests-expired", handleExpiredRequests);
     };
   }, [userId]);
 
   if (loading) return <div>Завантаження...</div>;
 
-  // return (
-  //   <div className="permission-requests-page">
-  //     <h2>Запити на дозвіл</h2>
-  //     {requests.length === 0 ? (
-  //       <p>Запитів немає.</p>
-  //     ) : (
-  //       requests.map((req) => (
-  //         <div key={req._id} className="request-card">
-  //           <p>
-  //             <strong>{req.requesterId.name}</strong> просить дозволу додати
-  //             характеристики до авто:{" "}
-  //             <strong>
-  //               {req.carId.brand} {req.carId.name} ({req.carId.year})
-  //             </strong>
-  //           </p>
-
-  //           {/* Статус — 3 варіанти */}
-  //           <p>
-  //             Статус:{" "}
-  //             {req.approved === true ? (
-  //               <span className="status approved">
-  //                 ✅ Схвалено <CountdownTimer createdAt={req.updatedAt} />
-  //               </span>
-  //             ) : req.approved === false ? (
-  //               <span className="status rejected">❌ Відхилено</span>
-  //             ) : (
-  //               <span className="status pending">🕒 Очікує</span>
-  //             )}
-  //           </p>
-
-  //           {/* Кнопки тільки якщо ще не підтверджено і не відхилено */}
-  //           {req.approved === null || req.approved === undefined ? (
-  //             <div>
-  //               <button onClick={() => handleResponse(req._id, true)}>
-  //                 ✅ Дозволити
-  //               </button>
-  //               <button onClick={() => handleResponse(req._id, false)}>
-  //                 ❌ Відхилити
-  //               </button>
-  //             </div>
-  //           ) : (
-  //             <p style={{ color: "gray" }}>Запит вже опрацьовано</p>
-  //           )}
-  //         </div>
-  //       ))
-  //     )}
-  //   </div>
-  // );
   return (
     <div className="permission-requests-page">
       <h2 className="page-title">Запити на дозвіл</h2>

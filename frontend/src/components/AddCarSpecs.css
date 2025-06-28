@@ -15,6 +15,51 @@ p {
     text-align: center;
 }
 
+.specs-button-alt {
+    border-left: 6px solid #4caf50;
+    border-right: 6px solid #4caf50;
+    border-radius: 4px;
+    padding: 0.1rem 1rem;
+    transition: transform 0.2s ease, color 0.2s ease;
+    display: block;
+    margin: 0 auto;
+}
+
+.specs-button-alt.light:hover {
+    color: #0056b3;
+    transform: scale(1.03);
+}
+
+.specs-button-alt.dark:hover {
+    color: blue;
+    transform: scale(1.03);
+}
+
+.specs-button-alt.light {
+    background-image: url('../assets/pexels-hngstrm-1939485.jpg');
+    color: black;
+}
+
+.specs-button-alt.dark {
+    background-image: url('../assets/pexels-danielabsi-952670.jpg');
+    color: white;
+}
+
+.fancy-arrow {
+    font-weight: bold;
+    color: #e63946;
+    /* червоний або вибери свій */
+    font-size: 1.5em;
+    /* збільшує стрілку */
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.fancy-arrow:hover {
+    transform: translateY(4px);
+    /* легке опускання при наведенні */
+}
+
 .specs-form {
     display: flex;
     flex-direction: column;

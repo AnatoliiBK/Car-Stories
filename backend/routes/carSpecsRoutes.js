@@ -34,6 +34,8 @@ router.post("/permission-request", auth, createPermissionRequest); // для ф�
 router.get("/permission-responses", auth, getMyPermissionResponses);
 
 router.get("/permission-requests", auth, getPermissionRequestsList); // 🔐список запитів власнику опрацьованих
+// router.post("/permission-requests", auth, getPermissionRequestsList);
+
 router.get("/status", auth, getPermissionRequestStatus); // 🔐список запитів власнику опрацьованих
 router.get("/my-pending", auth, getPermissionRequests); // список запитів власнику не опрацьованих
 router.get("/auto-ria", auth, getAutoRiaSpecs);

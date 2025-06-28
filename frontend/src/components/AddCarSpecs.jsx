@@ -70,6 +70,13 @@ const AddCarSpecs = ({ onSuccess, bypassPermissions = false }) => {
     }
   }, [message]);
 
+  useEffect(() => {
+    if (showModal) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showModal]);
+  
+
   const handleChange = (section, field, value) => {
     setSpecs((prev) => ({
       ...prev,
@@ -205,7 +212,9 @@ const AddCarSpecs = ({ onSuccess, bypassPermissions = false }) => {
   return (
     <div className={`add-specs-container ${theme}`}>
       <h2>Додати технічні характеристики</h2>
-      <p>{car?.brand} {car?.name} ({car?.year})</p>
+      <p>
+        {car?.brand} {car?.name} ({car?.year})
+      </p>
       {/* {message && <p className="status-message">{message}</p>} */}
 
       <form className={`specs-form ${theme}`} onSubmit={handleSubmit}>
@@ -258,7 +267,7 @@ const AddCarSpecs = ({ onSuccess, bypassPermissions = false }) => {
               // }
               onClick={() => setShowModal(true)}
             >
-              <button type="button" className={`specs-button ${theme}`}>
+              <button type="button" className={`specs-button-alt ${theme}`}>
                 Спробувати обраним ресурсом
               </button>
             </div>
@@ -271,6 +280,11 @@ const AddCarSpecs = ({ onSuccess, bypassPermissions = false }) => {
                 car={car}
               />
             )}
+            {/* <p>Або заповни форму нижче</p> */}
+            <p>
+              Або заповни форму нижче <span class="fancy-arrow">⬇</span>
+            </p>
+
             <label>
               VIN:
               <input
